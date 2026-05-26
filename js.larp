@@ -1,0 +1,111 @@
+// ==KettuPlugin==
+// @name Indian Discord Larp
+// @description LARP as another user (username + avatar spoof)
+// @version 1.1.0
+// ==/KettuPlugin==
+
+const config = {
+    name: "IndianDiscordLarp",
+    description: "Spoof username and avatar (LARP)",
+    version: "1.1.0",
+};
+
+export default {
+    ...config,
+
+    settings: {
+        targetUserId: {
+            type: "string",
+            description: "Target User ID (put the ID here)",
+            default: "",
+        },
+        targetUsername: {
+            type: "string",
+            description: "Target Username",
+            default: "",
+        }
+    },
+
+    start() {
+        this.targetUserId = this.settings.targetUserId?.value ?? this.settings.targetUserId;
+        this.targetUsername = this.settings.targetUsername?.value ?? this.settings.targetUsername;
+
+        if (!this.targetUserId || !this.targetUsername) {
+            console.log("[IndianLarp] Please fill Target User ID and Username in plugin settings!");
+            return;
+        }
+
+        this.addCSS();
+        this.initLarp();
+    },
+
+    stop() {
+        document.getElementById("indian-larp-css")?.remove();
+        this.observer?.disconnect();
+    },
+
+    addCSS() {
+        const css = `
+            [class*="typingDots"] { display: none !important; }
+            [class*="divider"] { display: none !important; }
+        `;
+        const style = document.createElement("style");
+        style.id = "indian-larp-css";
+        style.textContent = css;
+        document.head.appendChild(style);
+    },
+
+    async initLarp() {
+        const webpack = window.Kettu?.Webpack || window.vendetta?.webpack;
+        if (!webpack) {
+            setTimeout(() => this.initLarp(), 2000);
+            return;
+        }
+
+        const UserStore = webpack.findByStoreName?.("UserStore");
+        if (!UserStore) {
+            setTimeout(() => this.initLarp(), 1500);
+            return;
+        }
+
+        this.currentUser = UserStore.getCurrentUser();
+        if (!this.currentUser) {
+            setTimeout(() => this.initLarp(), 1500);
+            return;
+        }
+
+        this.targetUser = await UserStore.getUser(this.targetUserId).catch(() => null);
+
+        this.startReplacement();
+    },
+
+    startReplacement() {
+        this.replaceAvatars(document.body);
+
+        this.observer = new MutationObserver(() => {
+            this.replaceAvatars(document.body);
+        });
+
+        this.observer.observe(document.body, { childList: true, subtree: true });
+    },
+
+    replaceAvatars(root) {
+        if (!this.currentUser?.id || !this.targetUserId) return;
+
+        // Avatar images
+        root.querySelectorAll("img").forEach(img => {
+            const src = img.src || "";
+            if (src.includes(`/avatars/${this.currentUser.id}/`)) {
+                img.src = src.replace(`/avatars/${this.currentUser.id}/`, `/avatars/${this.targetUserId}/`);
+            }
+        });
+
+        // Background avatars
+        root.querySelectorAll("[style*='background-image']").forEach(el => {
+            let style = el.style.backgroundImage || "";
+            if (style.includes(`/avatars/${this.currentUser.id}/`)) {
+                el.style.backgroundImage = style.replace(`/avatars/${this.currentUser.id}/`, `/avatars/${this.targetUserId}/`);
+            }
+        });
+    }
+};
