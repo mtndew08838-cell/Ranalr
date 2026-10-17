@@ -1,0 +1,3448 @@
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/wyaSwift/nowfnownfwfwrf/refs/heads/main/fd"))()
+
+WindUI:AddTheme({
+    Name = "Dark", -- theme name
+
+    Accent = Color3.fromHex("#f10f0f"),
+    Background = Color3.fromHex("#101010"),
+    Outline = Color3.fromHex("#0a0a0a"),
+    Text = Color3.fromHex("#FFFFFF"),
+    Placeholder = Color3.fromHex("#7a7a7a"),
+    Button = Color3.fromHex("#52525b"),
+    Icon = Color3.fromHex("#a1a1aa"),
+})
+
+local Services = {
+    Players           = game:GetService("Players"),
+    RunService        = game:GetService("RunService"),
+    Workspace         = game:GetService("Workspace"),
+    ReplicatedStorage = game:GetService("ReplicatedStorage"),
+    TweenService      = game:GetService("TweenService"),
+    UserInputService  = game:GetService("UserInputService"),
+    CoreGui           = game:GetService("CoreGui"),
+    LocalPlayer       = game:GetService("Players").LocalPlayer,
+    Camera            = game:GetService("Workspace").CurrentCamera,
+    Lighting          = game:GetService("Lighting"),
+}
+
+function gradient(text, startColor, endColor)
+    local result = ''
+    local length = #text
+    for i = 1, length do
+        local t = (i - 1) / math.max(length - 1, 1)
+        local r = math.floor((startColor.R + (endColor.R - startColor.R) * t) * 255)
+        local g = math.floor((startColor.G + (endColor.G - startColor.G) * t) * 255)
+        local b = math.floor((startColor.B + (endColor.B - startColor.B) * t) * 255)
+        local char = text:sub(i, i)
+        result = result .. '<font color="rgb(' .. r .. ', ' .. g .. ', ' .. b .. ')">' .. char .. '</font>'
+    end
+    return result
+end
+
+local LocalPlayer = Services.Players.LocalPlayer
+local Confirmed   = false
+
+WindUI:Popup({
+    Title = 'Welcome, ' .. gradient(LocalPlayer.Name, Color3.fromHex('#f01717'), Color3.fromHex('#080808')),
+    Image     = 'rbxassetid://96255136823882',
+    IconThemed = true,
+    Content   = gradient(
+        'welcome to Binn.gg \n join Binn.gg discord for updates and more please & ty!',
+        Color3.fromRGB(255, 255, 255),
+        Color3.fromRGB(180, 180, 180)
+    ) .. gradient('', Color3.fromHex('#f70606'), Color3.fromHex('#050505')),
+    Buttons = {
+        {
+            Title    = 'Copy invite',
+            Icon     = '',
+            Callback = function() setclipboard('bronxmarkett'); Confirmed = true end,
+            Variant  = 'Primary',
+        },
+        {
+            Title    = 'Okay',
+            Icon     = 'arrow-right',
+            Callback = function() Confirmed = true end,
+            Variant  = 'Primary',
+        },
+    },
+})
+
+repeat task.wait() until Confirmed
+
+local Window = WindUI:CreateWindow({
+    Title                      = 'tha bronx',
+    Icon                       = 'rbxassetid://92551368238826',
+    Author                     = 'Binn.gg',
+    Folder                     = 'wwww',
+    Size                       = UDim2.fromOffset(480, 360),
+    Transparent                = true,
+    Theme                      = nil,
+    Resizable                  = true,
+    SideBarWidth               = 200,
+    BackgroundImageTransparency = 0.42,
+    HideSearchBar              = false,
+    ScrollBarEnabled           = true,
+    User                       = { Enabled = true, user = true, Callback = function() end },
+    OpenButton = {
+        Title           = "Open Binn.gg",
+        CornerRadius    = UDim.new(1, 0),
+        StrokeThickness = 2,
+        Enabled         = true,
+        Draggable       = true,
+        OnlyMobile      = false,
+        Color           = ColorSequence.new(Color3.fromHex("#ff0000"), Color3.fromHex("#0e0e0f")),
+    },
+})
+
+-- MB reactive logo — find the icon ImageLabel in the window and overlay a pulsing TextLabel
+task.defer(function()
+    local RunSvc2 = game:GetService("RunService")
+
+    -- hunt for the logo image in the GUI tree
+    local function findLogo(root)
+        for _, v in ipairs(root:GetDescendants()) do
+            if v:IsA("ImageLabel") and v.Image == "rbxassetid://119335616968310" then
+                return v
+            end
+        end
+    end
+
+    local gui = game:GetService("CoreGui")
+    local logoImg
+
+    -- retry a few frames — UI may not exist yet
+    for _ = 1, 30 do
+        logoImg = findLogo(gui)
+        if logoImg then break end
+        task.wait(0.05)
+    end
+
+    if not logoImg then return end
+
+    -- hide the original icon image
+    logoImg.ImageTransparency = 1
+
+    -- build the MB text on top
+    local mbLabel = Instance.new("TextLabel")
+    mbLabel.Size                 = UDim2.fromScale(1, 1)
+    mbLabel.BackgroundTransparency = 1
+    mbLabel.TextScaled           = true
+    mbLabel.Font                 = Enum.Font.GothamBold
+    mbLabel.Text                 = "MB"
+    mbLabel.ZIndex               = logoImg.ZIndex + 1
+    mbLabel.Parent               = logoImg
+
+    -- blue-to-blue smooth reactive pulse
+    -- cycles between two blues with a sine wave so it breathes rather than flicks
+    local mbT = 0
+    local BLUE_A = Color3.fromHex("#0c0c0c")   -- light cyan-blue
+    local BLUE_B = Color3.fromHex("#0040ff")   -- deep electric blue
+
+    RunSvc2.RenderStepped:Connect(function(dt)
+        mbT += dt * 1.4
+        local alpha = (math.sin(mbT) + 1) / 2   -- 0→1, smooth sinusoidal
+        mbLabel.TextColor3 = BLUE_A:Lerp(BLUE_B, alpha)
+    end)
+end)
+
+
+local Tabs = {}
+
+Tabs.HomeTab = Window:Tab({ Title = "Info", Icon = "solar:info-square-bold", ShowTabTitle = true, Border = true })
+
+local MainSection = Window:Section({ Title = 'Main',  Icon = 'box',      Opened = true, be = Window:Divider() })
+local other       = Window:Section({ Title = 'other', Icon = 'settings', Opened = true, be = Window:Divider() })
+
+Tabs.MainTab   = MainSection:Tab({ Title = 'Home',     Icon = 'house',                       ShowTabTitle = true })
+Tabs.GunTab    = MainSection:Tab({ Title = 'Gun',      Icon = 'rbxassetid://74707737394329', ShowTabTitle = true })
+Tabs.PlayerTab = MainSection:Tab({ Title = 'Players',  Icon = 'person-standing',             ShowTabTitle = true })
+Tabs.MeTab     = MainSection:Tab({ Title = 'Me',       Icon = 'person-standing',             ShowTabTitle = true })
+Tabs.TelTab    = MainSection:Tab({ Title = 'Teleport', Icon = 'map-pin',                     ShowTabTitle = true })
+Tabs.BankTab   = MainSection:Tab({ Title = 'money',    Icon = 'banknote',                    ShowTabTitle = true })
+Tabs.EspTab    = MainSection:Tab({ Title = 'esp',      Icon = 'crosshair',                   ShowTabTitle = true })
+Tabs.MiscTab   = other:Tab({ Title = 'settings',       Icon = 'settings', ShowTabTitle = true })
+Tabs.LogsTab   = other:Tab({ Title = 'Update Logs',    Icon = 'bell',     ShowTabTitle = true })
+Tabs.Aim    = MainSection:Tab({ Title = 'Aim',     Icon = 'crosshair',    ShowTabTitle = true })
+
+Window:Tag({ Title = 'v1.0', Color = WindUI:Gradient({ ['0'] = { Color = Color3.fromHex('#30ff6a'), Transparency = 0 }, ['100'] = { Color = Color3.fromHex('#424242'), Transparency = 0 } }, { Rotation = 45 }) })
+Window:Tag({ Title = 'Free',  Color = WindUI:Gradient({ ['0'] = { Color = Color3.fromHex('#04e11a'), Transparency = 0 }, ['100'] = { Color = Color3.fromHex('#464646'), Transparency = 0 } }, { Rotation = 45 }) })
+
+local TimeTag = Window:Tag({
+    Title  = '--:--',
+    Radius = 10,
+    Color  = WindUI:Gradient({ ['0'] = { Color = Color3.fromHex('#434242'), Transparency = 0 }, ['100'] = { Color = Color3.fromHex('#F89B29'), Transparency = 0 } }, { Rotation = 45 }),
+})
+
+local hue = 0
+task.spawn(function()
+    while true do
+        local now = os.date('*t')
+        hue = (hue + 0.005) % 1
+        TimeTag:SetTitle(string.format('%02d', now.hour) .. ':' .. string.format('%02d', now.min))
+        task.wait(0.2)
+    end
+end)
+
+local hwid = "unknown"
+pcall(function()
+    hwid = gethwid and gethwid() or game:GetService("RbxAnalyticsService"):GetClientId()
+end)
+if hwid ~= "unknown" then hwid = string.sub(hwid, 1, 10) end
+
+Window:Tag({ Title = hwid, Color = WindUI:Gradient({ ['0'] = { Color = Color3.fromHex('#ff3131'), Transparency = 0 }, ['100'] = { Color = Color3.fromHex('#323232'), Transparency = 0 } }, { Rotation = 45 }) })
+
+repeat task.wait() until Confirmed
+
+
+
+Tabs.LogsTab:Paragraph({
+    Title = 'Update 1  •  2/28/26',
+    Desc  = '[+] added shoot tornados\n[+] added serversided mods\n[+] added flashbang bullet\n[+] added infinite money\n[+] added teleport\n[+] fixed esp',
+    Image = 'bell',
+})
+
+Tabs.LogsTab:Paragraph({
+    Title = 'Update 2  •  3/1/26',
+    Desc  = '[✓] fixed player tab\n[+] added infinite money',
+    Image = 'bell',
+})
+
+Tabs.LogsTab:Paragraph({
+    Title = 'Update 3  •  8/20/26',
+    Desc  = '[✓] fixed infinite money\n[+] ',
+    Image = 'bell',
+})
+
+
+
+local S = {
+    Players           = game:GetService("Players"),
+    UIS               = game:GetService("UserInputService"),
+    RunService        = game:GetService("RunService"),
+    StarterGui        = game:GetService("StarterGui"),
+    Lighting          = game:GetService("Lighting"),
+    ReplicatedStorage = game:GetService("ReplicatedStorage"),
+    Workspace         = game:GetService("Workspace"),
+}
+S.LocalPlayer = S.Players.LocalPlayer
+
+local HttpService      = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+
+WindUI:Notify({
+    Title      = 'IMPORTANT!',
+    Content    = 'check out Bin.gg for more scripts!',
+    Icon       = 'smile',
+    IconThemed = true,
+    Duration   = 7,
+})
+
+local executor = (identifyexecutor and identifyexecutor()) or "Unknown"
+executor = string.lower(executor)
+
+local desc, color
+if executor:find("solara") or executor:find("xeno") or executor:find("volcano") or executor:find("velocity") then
+    desc  = executor .. " ur executor is shit and 90% of the stuff wont work\n get a better executor from https://whatexpsare.online ."
+    color = Color3.fromRGB(255, 0, 0)
+else
+    desc  = executor .. " should run everything fine."
+    color = Color3.fromRGB(41, 180, 41)
+end
+
+Tabs.HomeTab:Paragraph({ Title = executor, Desc = desc, Color = color, Image = "cpu", ImageSize = 30 })
+Tabs.HomeTab:Divider()
+
+do
+    local url    = 'https://discord.com/api/v10/invites/JG9nKWTsWZ?with_counts=true&with_expiration=true'
+    local ok, res = pcall(function()
+        if WindUI and WindUI.Creator and WindUI.Creator.Request then
+            return HttpService:JSONDecode(WindUI.Creator.Request({ Url = url, Method = 'GET', Headers = { ['User-Agent'] = 'RobloxBot/1.0' } }).Body)
+        else
+            return HttpService:JSONDecode(HttpService:GetAsync(url))
+        end
+    end)
+    if ok and res and res.guild then
+        Tabs.HomeTab:Paragraph({
+            Title     = res.guild.name,
+            Desc      = ' <font color="#ff0000">\226\128\162</font> Member Count: ' .. tostring(res.approximate_member_count) ..
+                        '\n <font color="#000000">\226\128\162</font> Online Count: ' .. tostring(res.approximate_presence_count),
+            Image     = 'rbxassetid://92551368238826',
+            ImageSize = 42,
+        })
+    else
+        Tabs.HomeTab:Paragraph({ Title = 'Error when receiving Discord server info', Desc = HttpService:JSONEncode(res or (ok and {} or { error = "Request failed" })), Image = 'triangle-alert', ImageSize = 26, Color = 'Red' })
+    end
+
+    local CopyDiscordButton
+    CopyDiscordButton = Tabs.HomeTab:Button({
+        Title    = "Click to copy Discord invite",
+        Icon     = "mouse-pointer-click",
+        Justify  = "Center",
+        Callback = function() setclipboard("https://discord.gg/JG9nKWTsWZ"); CopyDiscordButton:Highlight() end,
+    })
+end
+
+Tabs.HomeTab:Divider()
+Tabs.HomeTab:Code({
+    Title = "Your Server Join Link",
+    Code  = "https://fern.wtf/joiner?placeId=" .. tostring(game.PlaceId) .. "&gameInstanceId=" .. tostring(game.JobId),
+})
+
+-- ============================
+--         MAIN TAB
+-- ============================
+
+Tabs.MainTab:Paragraph({
+    Title   = "Welcome to " .. gradient("Binn.gg", Color3.fromHex("#0b0b0b"), Color3.fromHex("#32CD32")),
+    Desc    = "join the discord bin.gg for updates & patches",
+    Image   = "solar:info-square-bold",
+    Buttons = {
+        {
+            Title    = "Discord",
+            Icon     = "bell",
+            Callback = function()
+                setclipboard("discord.ggbronxmarkett")
+                WindUI:Notify({ Title = "Copied!", Content = "Discord invite copied to ur clipboard", Icon = "discord", Duration = 3 })
+            end,
+        }
+    }
+})
+
+local mainMultiSection = Tabs.MainTab:MultiSection({ Title = "Main Features", Desc = "Scroll over for more tabs", Icon = "sparkles", Opened = true, Box = true, BoxBorder = true })
+
+local generalTab  = mainMultiSection:Tab({ Title = "Infinite Money",   Icon = "banknote", Selected = true  })
+local autoDupeTab = mainMultiSection:Tab({ Title = "Auto Dupe", Icon = "infinity",  Selected = false })
+
+-- ============================
+--      TELEPORT BYPASS
+-- ============================
+
+local _humanoidRootPart = nil
+
+local function _updateHRP()
+    local char = S.LocalPlayer.Character
+    if char then
+        _humanoidRootPart = char:FindFirstChild("HumanoidRootPart")
+    end
+end
+
+S.LocalPlayer.CharacterAdded:Connect(function(char)
+    _humanoidRootPart = char:WaitForChild("HumanoidRootPart")
+end)
+_updateHRP()
+
+local function BypassTeleport(CF)
+    local player = S.LocalPlayer
+    if not player.Character then return end
+    _updateHRP()
+    if not _humanoidRootPart then return end
+    local humanoid = _humanoidRootPart.Parent:FindFirstChild("Humanoid")
+    if not humanoid then return end
+
+    getgenv().SwimMethod = true
+    humanoid:ChangeState(0)
+
+    local t0 = tick()
+    while player:GetAttribute("LastACPos") and (tick() - t0) < 2 do
+        task.wait(0.0001)
+    end
+
+    _humanoidRootPart.CFrame = CF
+    task.wait(0.1)
+    humanoid:ChangeState(2)
+    getgenv().SwimMethod = false
+end
+
+-- ============================
+--     INFINITE MONEY HELPERS
+-- ============================
+
+local function GetFruitCup()
+    local Found, Cup = false, nil
+    for _, Value in ipairs(S.LocalPlayer.Backpack:GetChildren()) do
+        if Value:IsA("Tool") and Value.Name == "Ice-Fruit Cupz" then
+            if Value["IceFruit Cup"]["IceFruit PunchMedium"].Transparency ~= 1 then
+                Found = true; Cup = Value; break
+            end
+        end
+    end
+    if not Found then
+        for _, Value in ipairs(S.LocalPlayer.Character:GetChildren()) do
+            if Value:IsA("Tool") and Value.Name == "Ice-Fruit Cupz" then
+                if Value["IceFruit Cup"]["IceFruit PunchMedium"].Transparency ~= 1 then
+                    Found = true; Cup = Value; break
+                end
+            end
+        end
+    end
+    return Found, Cup
+end
+
+local function GetGoodCleaner()
+    local CounterInstance
+    for _, Value in ipairs(S.Workspace["1# Map"]:GetChildren()) do
+        if Value:FindFirstChild("CounterM") then CounterInstance = Value end
+    end
+    if not CounterInstance then return nil end
+    for _, batch in next, {S.Workspace.CounterBag:GetChildren(), CounterInstance:GetChildren()} do
+        for _, v in batch do
+            local cashPrompt = v:FindFirstChild("CashPrompt", true)
+            local grabPrompt = v:FindFirstChild("GrabPrompt", true)
+            if cashPrompt and cashPrompt.Enabled and cashPrompt.ObjectText == "Count Bread"
+            and grabPrompt and not grabPrompt.Enabled then
+                return v
+            end
+        end
+    end
+end
+
+local function CleanDirtyMoney()
+    if S.LocalPlayer.stored.FilthyStack.Value == 0 then return end
+    if not S.LocalPlayer.Character or not S.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+    if not S.LocalPlayer.Character:FindFirstChild("Humanoid") or S.LocalPlayer.Character.Humanoid.Health == 0 then return end
+
+    local Cleaner = GetGoodCleaner()
+    if not Cleaner then return end
+
+    BypassTeleport(Cleaner.WorldPivot)
+    task.wait(0.4)
+    fireproximityprompt(Cleaner:FindFirstChild("CashPrompt", true))
+
+    repeat task.wait() until Cleaner:FindFirstChild("On", true).Color == Color3.fromRGB(74, 156, 69)
+    task.wait(0.5)
+
+    fireproximityprompt(Cleaner:FindFirstChild("CashPrompt", true))
+    task.wait(0.25)
+    BypassTeleport(Cleaner.WorldPivot)
+    task.wait(0.4)
+
+    repeat task.wait() until S.LocalPlayer.Backpack:FindFirstChild("MoneyReady")
+    S.LocalPlayer.Character.Humanoid:EquipTool(S.LocalPlayer.Backpack["MoneyReady"])
+
+    repeat task.wait(0.1)
+        fireproximityprompt(Cleaner:FindFirstChild("GrabPrompt", true))
+    until not S.LocalPlayer.Character:FindFirstChild("MoneyReady")
+
+    repeat task.wait() until S.LocalPlayer.Backpack:FindFirstChild("BagOfMoney")
+
+    BypassTeleport(CFrame.new(-203, 284, -1201))
+    task.wait(0.4)
+    S.LocalPlayer.Character.Humanoid:EquipTool(S.LocalPlayer.Backpack["BagOfMoney"])
+    task.wait(1)
+    fireproximityprompt(S.Workspace.ATMMoney.Prompt)
+    WindUI:Notify({ Title = "Done!", Content = "Dirty money cleaned.", Icon = "coins", Duration = 3 })
+end
+
+local function InfiniteMoney_Auto()
+    local Found, Cup = GetFruitCup()
+    local OLDCFrame  = S.LocalPlayer.Character.HumanoidRootPart.CFrame
+    local StarterGui = game:GetService("StarterGui")
+
+    -- Fast path: already have a filled cup, sell it immediately then clean
+    if Found and Cup then
+        if Cup.Parent == S.LocalPlayer.Backpack then
+            S.LocalPlayer.Character.Humanoid:EquipTool(Cup)
+            task.wait(1)
+        end
+
+        BypassTeleport(S.Workspace["IceFruit Sell"].CFrame)
+        task.wait(0.5)
+
+        local prompt = S.Workspace["IceFruit Sell"].ProximityPrompt
+        local origHold, origDist = prompt.HoldDuration, prompt.MaxActivationDistance
+        prompt.HoldDuration          = 0
+        prompt.MaxActivationDistance = 50
+        prompt.RequiresLineOfSight   = false
+        S.LocalPlayer.Character.HumanoidRootPart.Anchored = true
+        for i = 1, 1000 do fireproximityprompt(prompt, 0) end
+        prompt.HoldDuration          = origHold
+        prompt.MaxActivationDistance = origDist
+        S.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+        BypassTeleport(OLDCFrame)
+        WindUI:Notify({ Title = "Sold!", Content = "Cup sold — cleaning dirty money now.", Icon = "banknote", Duration = 3 })
+        CleanDirtyMoney()
+        return
+    end
+
+    -- Full path: buy ingredients, cook, sell, then clean
+    WindUI:Notify({ Title = "No Filled Cup", Content = "Buying ingredients — need ~$5k.", Icon = "alert-triangle", Duration = 3 })
+
+    local Itemz = { "FijiWater", "FreshWater", "Ice-Fruit Bag", "Ice-Fruit Cupz" }
+    local Stove
+
+    for _, Value in S.Workspace.CookingPots:GetChildren() do
+        if Value:IsA("Model") then
+            local pp = Value:FindFirstChildWhichIsA("ProximityPrompt", true)
+            if pp and pp.ActionText == "Turn On" and pp.Enabled then
+                Stove = Value; break
+            end
+        end
+    end
+
+    if not Stove then
+        WindUI:Notify({ Title = "No Stove Found", Content = "No available cooking pot.", Icon = "alert-triangle", Duration = 3 })
+        return
+    end
+
+    for _, Value in ipairs(Itemz) do
+        if not S.LocalPlayer.Backpack:FindFirstChild(Value) then
+            S.ReplicatedStorage:WaitForChild("ExoticShopRemote"):InvokeServer(Value)
+            task.wait(1)
+        end
+    end
+    for _, Value in ipairs(Itemz) do
+        if not S.LocalPlayer.Backpack:FindFirstChild(Value) then
+            WindUI:Notify({ Title = "Missing Items", Content = "Need at least $5000.", Icon = "alert-triangle", Duration = 3 })
+            return
+        end
+    end
+
+    BypassTeleport(Stove.CookPart.CFrame)
+    task.wait(1)
+    StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
+    S.LocalPlayer.Character.HumanoidRootPart.Anchored = true
+    task.wait(1.5)
+    fireproximityprompt(Stove:FindFirstChildWhichIsA("ProximityPrompt", true))
+    task.wait(2)
+
+    for _, Value in ipairs({ "FijiWater", "FreshWater", "Ice-Fruit Bag" }) do
+        S.LocalPlayer.Character.Humanoid:EquipTool(S.LocalPlayer.Backpack[Value])
+        task.wait(1)
+        fireproximityprompt(Stove:FindFirstChildWhichIsA("ProximityPrompt", true))
+        task.wait(3)
+    end
+
+    repeat task.wait() until Stove.CookPart.Steam.LoadUI.Enabled == false
+
+    if not S.LocalPlayer.Character:FindFirstChild("Ice-Fruit Cupz") then
+        S.LocalPlayer.Character.Humanoid:EquipTool(S.LocalPlayer.Backpack["Ice-Fruit Cupz"])
+        task.wait(1)
+    end
+    task.wait(1)
+    fireproximityprompt(Stove:FindFirstChildWhichIsA("ProximityPrompt", true))
+    task.wait(3)
+
+    S.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+    BypassTeleport(S.Workspace["IceFruit Sell"].CFrame)
+    task.wait(1)
+    S.LocalPlayer.Character.HumanoidRootPart.Anchored = true
+    task.wait(1.5)
+
+    if not S.LocalPlayer.Character:FindFirstChild("Ice-Fruit Cupz") then
+        S.LocalPlayer.Character.Humanoid:EquipTool(S.LocalPlayer.Backpack["Ice-Fruit Cupz"])
+        task.wait(1)
+    end
+
+    local prompt = S.Workspace["IceFruit Sell"].ProximityPrompt
+    local origHold, origDist = prompt.HoldDuration, prompt.MaxActivationDistance
+    prompt.HoldDuration          = 0
+    prompt.MaxActivationDistance = 50
+    prompt.RequiresLineOfSight   = false
+    for i = 1, 1000 do fireproximityprompt(prompt, 0) end
+    prompt.HoldDuration          = origHold
+    prompt.MaxActivationDistance = origDist
+    S.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+    StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, true)
+    task.wait(0.5)
+    BypassTeleport(OLDCFrame)
+    WindUI:Notify({ Title = "Sold!", Content = "Cup cooked and sold — cleaning dirty money now.", Icon = "banknote", Duration = 3 })
+    CleanDirtyMoney()
+end
+
+local function InfiniteMoney_Manual()
+    local char = S.LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local Cup = nil
+    for _, v in ipairs(char:GetChildren()) do
+        if v:IsA("Tool") and v.Name == "Ice-Fruit Cupz" then Cup = v; break end
+    end
+    if not Cup then
+        for _, v in ipairs(S.LocalPlayer.Backpack:GetChildren()) do
+            if v:IsA("Tool") and v.Name == "Ice-Fruit Cupz" then Cup = v; break end
+        end
+    end
+
+    if not Cup then
+        WindUI:Notify({ Title = "No Cup", Content = "Equip a filled Ice-Fruit Cupz first.", Icon = "alert-triangle", Duration = 3 })
+        return
+    end
+
+    if Cup.Parent == S.LocalPlayer.Backpack then
+        char.Humanoid:EquipTool(Cup)
+        task.wait(0.5)
+    end
+
+    local OldCFrame = hrp.CFrame
+    BypassTeleport(S.Workspace["IceFruit Sell"].CFrame)
+    task.wait(0.5)
+
+    local prompt = S.Workspace["IceFruit Sell"].ProximityPrompt
+    local origHold, origDist = prompt.HoldDuration, prompt.MaxActivationDistance
+    prompt.HoldDuration          = 0
+    prompt.MaxActivationDistance = 50
+    prompt.RequiresLineOfSight   = false
+    S.LocalPlayer.Character.HumanoidRootPart.Anchored = true
+    for i = 1, 1000 do fireproximityprompt(prompt, 0) end
+    prompt.HoldDuration          = origHold
+    prompt.MaxActivationDistance = origDist
+    S.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+    task.wait(0.5)
+    BypassTeleport(OldCFrame)
+    WindUI:Notify({ Title = "Sold!", Content = "Cup sold — cleaning dirty money now.", Icon = "coins", Duration = 3 })
+    CleanDirtyMoney()
+end
+
+-- ============================
+--       AUTO DUPE TAB UI
+-- ============================
+
+do
+    local dupeCooldown   = false
+    local autoDupeActive = false
+
+    local function _enableSwim()
+        getgenv().SwimMethod = true
+        task.wait(1)
+    end
+
+    local function _disableSwim()
+        getgenv().SwimMethod = false
+    end
+
+    local function _dupeBypassTp(player, cf)
+        local char = player.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        _enableSwim()
+        task.wait(0.25)
+        char.HumanoidRootPart.CFrame = cf + Vector3.new(2, 0, 0)
+        task.delay(0.25, _disableSwim)
+    end
+
+    local function _getSafe()
+        local safe = nil
+        pcall(function()
+            safe = workspace
+                :WaitForChild("HomeDoorSS")
+                :WaitForChild("HomeDoor")
+                :WaitForChild("Safe")
+        end)
+        return safe
+    end
+
+    local function _safeDupeOnce(player, toolName)
+        local RS        = game:GetService("ReplicatedStorage")
+        local Character = player.Character
+        if not Character or not toolName then return end
+
+        local InventoryRemote = RS:WaitForChild("Inventory")
+        local BackpackRemote  = RS:WaitForChild("BackpackRemote")
+        local Safe = _getSafe()
+        if not Safe then return end
+
+        Character.Humanoid:UnequipTools()
+
+        task.spawn(function()
+            BackpackRemote:InvokeServer("Store", toolName)
+        end)
+        task.spawn(function()
+            InventoryRemote:FireServer("Change", toolName, "Backpack", Safe)
+        end)
+
+        task.wait(2)
+        BackpackRemote:InvokeServer("Grab", toolName)
+
+        if not getgenv().StoreDuped then
+            InventoryRemote:FireServer("Change", toolName, "Inv", Safe)
+        end
+    end
+
+    local function _runDupe(player, looping)
+        local char = player.Character or player.CharacterAdded:Wait()
+        local tool = char:FindFirstChildOfClass("Tool")
+        if not tool then
+            WindUI:Notify({ Title = "No Tool Equipped", Content = "Equip a gun first.", Icon = "alert-triangle", Duration = 4 })
+            return false
+        end
+
+        local toolName = tool.Name
+        local Safe = _getSafe()
+        if not Safe then
+            WindUI:Notify({ Title = "Safe Not Found", Content = "Make sure you have a safe placed.", Icon = "alert-triangle", Duration = 4 })
+            return false
+        end
+
+        local safePart
+        for _, v in pairs(Safe:GetChildren()) do
+            if v:IsA("BasePart") then safePart = v; break end
+        end
+        if not safePart then
+            WindUI:Notify({ Title = "Safe Part Missing", Icon = "alert-triangle", Duration = 4 })
+            return false
+        end
+
+        if looping then
+            WindUI:Notify({ Title = "Duping: " .. toolName, Content = "Safe dupe loop running.", Icon = "infinity", Duration = 4 })
+        end
+
+        getgenv().StoreDuped = true
+
+        local originalCFrame = char:WaitForChild("HumanoidRootPart").CFrame
+
+        _dupeBypassTp(player, safePart.CFrame + Vector3.new(0, 0.5, 0))
+        task.wait(1)
+        _safeDupeOnce(player, toolName)
+        task.wait(1)
+        _dupeBypassTp(player, originalCFrame)
+        task.wait(0.5)
+
+        local backpackTool = player.Backpack:FindFirstChild(toolName)
+        if backpackTool then
+            player.Character.Humanoid:EquipTool(backpackTool)
+        end
+
+        return true
+    end
+
+    autoDupeTab:Paragraph({
+        Title = "How to use",
+        Desc  = "Equip the gun you want to dupe, stand near your safe, then toggle Auto or hit Run Once. Might take a few attempts.",
+        Image = "info",
+    })
+
+    autoDupeTab:Toggle({
+        Title    = "Auto Safe Dupe",
+        Icon     = "infinity",
+        Desc     = "Loops dupe on your equipped tool automatically.",
+        Value    = false,
+        Callback = function(state)
+            autoDupeActive = state
+
+            task.spawn(function()
+                local player = S.LocalPlayer
+
+                while autoDupeActive do
+                    if dupeCooldown then task.wait(0.1); continue end
+                    dupeCooldown = true
+
+                    local ok = _runDupe(player, true)
+                    if not ok then
+                        dupeCooldown = false
+                        break
+                    end
+
+                    WindUI:Notify({ Title = "Dupe Cycle Done", Content = "Looping again in 3s.", Icon = "check", Duration = 3 })
+                    dupeCooldown = false
+                    task.wait(3)
+                end
+
+                if not autoDupeActive then
+                    WindUI:Notify({ Title = "Auto Dupe Stopped", Icon = "x", Duration = 3 })
+                end
+            end)
+        end,
+    })
+
+    autoDupeTab:Button({
+        Title    = "Run Dupe Once",
+        Icon     = "play",
+        Desc     = "Single dupe pass on your currently equipped tool.",
+        Callback = function()
+            task.spawn(function()
+                if dupeCooldown then
+                    WindUI:Notify({ Title = "On Cooldown", Content = "Wait for current cycle to finish.", Icon = "clock", Duration = 3 })
+                    return
+                end
+
+                dupeCooldown = true
+                local player = S.LocalPlayer
+                _runDupe(player, false)
+                WindUI:Notify({ Title = "Dupe Finished", Icon = "check", Duration = 3 })
+                dupeCooldown = false
+            end)
+        end,
+    })
+end
+
+-- ============================
+--       GENERAL TAB UI
+-- ============================
+
+generalTab:Paragraph({
+    Title = "How to use",
+    Desc  = "Infinite Money: auto-cooks and sells Ice-Fruit Cupz then launders dirty money — needs ~$5k if no cup.\nInfinite Money (Manual): equip a pre-cooked Ice-Fruit Cupz, sells it instantly then launders dirty money.\nClean Dirty Money: launders your FilthyStack through the cleaner and deposits at the ATM.",
+    Image = "info",
+})
+
+generalTab:Divider()
+
+generalTab:Button({
+    Title    = "Infinite Money",
+    Icon     = "banknote",
+    Desc     = "Auto-cooks, sells, then launders dirty money. Needs ~$5k if no cup.",
+    Callback = function()
+        task.spawn(InfiniteMoney_Auto)
+    end,
+})
+
+generalTab:Button({
+    Title    = "Infinite Money (Manual)",
+    Icon     = "coins",
+    Desc     = "Sell a pre-cooked Ice-Fruit Cupz instantly, then launders dirty money.",
+    Callback = function()
+        task.spawn(InfiniteMoney_Manual)
+    end,
+})
+
+generalTab:Button({
+    Title    = "Clean Dirty Money",
+    Icon     = "sparkles",
+    Desc     = "Launders your FilthyStack through the cleaner and deposits at the ATM.",
+    Callback = function()
+        task.spawn(CleanDirtyMoney)
+    end,
+})
+
+-- ============================
+--       TELEPORT TAB
+-- ============================
+
+local TeleportationList = {
+    { Name = "🏦 Bank",              CF = CFrame.new(-1216, 254, -3640) },
+    { Name = "💵 Money Wash",        CF = CFrame.new(-977.1771, 253.6838, -692.5855) },
+    { Name = "💸 Money Wash 2",      CF = CFrame.new(-711.918701, 241.926270, -577.127869) },
+    { Name = "📦 Safe Items",        CF = CFrame.new(99.992218, 286.523071, -915.044067) },
+    { Name = "💰 Pawn Shop",         CF = CFrame.new(-1049.6431, 253.5367, -814.2697) },
+    { Name = "🤑 Mr Money Man",      CF = CFrame.new(-1008.0662, 262.1141, 55.1336) },
+    { Name = "🔫 GunShop 1",         CF = CFrame.new(92978, 122099, 17232) },
+    { Name = "🔫 GunShop 1 Lobby",   CF = CFrame.new(-1002.4224, 253.6382, -803.9125) },
+    { Name = "🔫 GunShop 2",         CF = CFrame.new(66195.4453125, 123615.7109375, 5750.28271484375) },
+    { Name = "🔫 GunShop 2 Lobby",   CF = CFrame.new(-224.3818359375, 283.8034362792969, -794.7174072265625) },
+    { Name = "🔫 GunShop 3",         CF = CFrame.new(60820.3086, 87609.1484, -351.4746) },
+    { Name = "🔫 GunShop 4",         CF = CFrame.new(72421.9140625, 128855.8203125, -1080.611083984375) },
+    { Name = "🔫 GunShop 5",         CF = CFrame.new(-956, 260, -4255) },
+    { Name = "🏢 Pent House",        CF = CFrame.new(-1526, 463, -3691) },
+    { Name = "🏠 Mini Mansion",      CF = CFrame.new(-791.5180053710938, 256.7944641113281, 1414.4248046875) },
+    { Name = "🏢 Roof",              CF = CFrame.new(-381.6539001464844, 463.6910705566406, -706.3580932617188) },
+    { Name = "🎒 Backpack Shop",     CF = CFrame.new(-703.339355, 253.918518, -694.008057) },
+    { Name = "📱 T-Mobile",          CF = CFrame.new(-682, 254, -708) },
+    { Name = "💎 Frozen Shop",       CF = CFrame.new(-1206, 254, -3994) },
+    { Name = "💧 Drip Store",        CF = CFrame.new(67462.6953, 10489.0352, 549.5895) },
+    { Name = "🍗 Chicken Wings",     CF = CFrame.new(-957.9142, 253.5367, -815.9442) },
+    { Name = "🍗 Dk's Chicken",      CF = CFrame.new(-608.566101, 253.932587, -466.396851) },
+    { Name = "🥪 Deli",              CF = CFrame.new(-755.8114013671875, 254.6927490234375, -687.1181640625) },
+    { Name = "🥪 Deli 2",            CF = CFrame.new(-1377, 254, -3900) },
+    { Name = "🍪 Popeyeas",          CF = CFrame.new(-71.80589294433594, 283.6418151855469, -769.4448852539062) },
+    { Name = "🍕 Lil Caesars",       CF = CFrame.new(-611.523376, 254.308807, -800.337341) },
+    { Name = "🌮 Taco Shop",         CF = CFrame.new(-672.696655, 253.827667, -807.838440) },
+    { Name = "😋 Burger n Fries",    CF = CFrame.new(-750.633545, 253.761230, -784.572021) },
+    { Name = "🍟 McDonald's",        CF = CFrame.new(-442.666290, 254.004700, -949.697327) },
+    { Name = "🚗 Car Dealer",        CF = CFrame.new(-401.99371337890625, 253.4141082763672, -1248.8380126953125) },
+    { Name = "🚗 Car Dealer 2",      CF = CFrame.new(-1556, 254, -3842) },
+    { Name = "🥤 Soda Warehouse",    CF = CFrame.new(-187.85504150390625, 284.6252136230469, -291.3419189453125) },
+    { Name = "🍾 Soda Supplies",     CF = CFrame.new(-403.09906005859375, 254.20343017578125, -580.0437622070312) },
+    { Name = "🍹 Soda Seller",       CF = CFrame.new(-1292.2200927734375, 253.30044555664062, -3003.04833984375) },
+    { Name = "🐍 Exotic Dealer",     CF = CFrame.new(-1523.5654296875, 273.9729919433594, -990.6575317382812) },
+    { Name = "⛽ Gas Station",       CF = CFrame.new(-1430, 255, -4271) },
+    { Name = "🔀 Switch Seller",     CF = CFrame.new(-1446.2166748046875, 256.059814453125, 2189.876220703125) },
+    { Name = "🏢 Bank Tools",        CF = CFrame.new(-397.4308776855469, 334.3142395019531, -555.7023315429688) },
+    { Name = "🚧 Construction Site", CF = CFrame.new(-1731.8307, 370.8123, -1176.8387) },
+    { Name = "🚔 Prison",            CF = CFrame.new(-1135.0464, 254.7160, -3330.9954) },
+    { Name = "❄️ Ice Box",           CF = CFrame.new(-215.1407, 283.5154, -1258.691) },
+    { Name = "🏥 Hospital",          CF = CFrame.new(-1589.504150390625, 254.27223205566406, 17.6555233001709) },
+    { Name = "🛍️ MarGreens",        CF = CFrame.new(-381.20751953125, 254.45382690429688, -385.66546630859375) },
+    { Name = "🚨 Feds Room",         CF = CFrame.new(-1441.7904052734375, 255.03651428222656, -3132.597412109375) },
+    { Name = "🏧 ATM 1",             CF = CFrame.new(-1043.4736328125, 254.83189392089844, -1127.0150146484375) },
+    { Name = "🏧 ATM 2",             CF = CFrame.new(-738.2561645507812, 253.76121520996094, -787.8572387695312) },
+    { Name = "🏧 ATM 3",             CF = CFrame.new(-96.72356414794922, 283.6329345703125, -766.3309326171875) },
+    { Name = "🚪 House Rob",         CF = CFrame.new(-613.0518798828125, 254.07281494140625, -730.7089233398438) },
+    { Name = "💰 Studio Robbery",    CF = CFrame.new(93427.515625, 14484.9052734375, 566.6701049804688) },
+    { Name = "🏕️ TrailerPark",      CF = CFrame.new(-1522.76904296875, 253.16094970703125, 2344.95947265625) },
+    { Name = "🏨 Woody's Hotel",     CF = CFrame.new(-1022.61962890625, 325.8400573730469, -908.91571044921875) },
+    { Name = "🎤 Marleys Studio",    CF = CFrame.new(-1541.264282, 280.952393, -1023.484375) },
+}
+
+local TeleportNames = {}
+for _, entry in ipairs(TeleportationList) do
+    table.insert(TeleportNames, entry.Name)
+end
+
+local SelectedTeleport = TeleportNames[1]
+
+Tabs.TelTab:Dropdown({
+    Title            = "Select Location",
+    Desc             = "Pick a destination then hit Teleport",
+    Values           = TeleportNames,
+    Value            = TeleportNames[1],
+    SearchBarEnabled = true,
+    Callback         = function(selected)
+        SelectedTeleport = selected
+    end,
+})
+
+Tabs.TelTab:Button({
+    Title    = "Teleport",
+    Icon     = "map-pin",
+    Callback = function()
+        if not S.LocalPlayer.Character then
+            WindUI:Notify({ Title = "No Character", Content = "Respawn and try again.", Icon = "alert-triangle", Duration = 3 })
+            return
+        end
+        for _, entry in ipairs(TeleportationList) do
+            if entry.Name == SelectedTeleport then
+                BypassTeleport(entry.CF)
+                WindUI:Notify({ Title = "Teleported", Content = "Moved to " .. entry.Name, Icon = "map-pin", Duration = 3 })
+                return
+            end
+        end
+    end,
+})
+
+Tabs.TelTab:Divider()
+
+local TpSvc   = game:GetService("TeleportService")
+local HttpSvc = game:GetService("HttpService")
+local PID     = game.PlaceId
+local TelPlr  = S.LocalPlayer
+
+Tabs.TelTab:Button({
+    Title    = "Rejoin",
+    Icon     = "refresh-cw",
+    Callback = function()
+        TpSvc:Teleport(PID, TelPlr)
+    end,
+})
+
+Tabs.TelTab:Button({
+    Title    = "Join Lowest Server",
+    Icon     = "arrow-down",
+    Callback = function()
+        local servers, cursor = {}, ""
+        repeat
+            local url  = "https://games.roblox.com/v1/games/" .. PID ..
+                "/servers/Public?sortOrder=Asc&limit=100" ..
+                (cursor ~= "" and "&cursor=" .. cursor or "")
+            local data = HttpSvc:JSONDecode(game:HttpGet(url))
+            for _, sv in ipairs(data.data) do
+                if sv.playing < sv.maxPlayers then table.insert(servers, sv) end
+            end
+            cursor = data.nextPageCursor
+        until not cursor or #servers > 0
+        table.sort(servers, function(a, b) return a.playing < b.playing end)
+        if servers[1] then
+            TpSvc:TeleportToPlaceInstance(PID, servers[1].id, TelPlr)
+        else
+            WindUI:Notify({ Title = "No servers found", Icon = "alert-triangle", Duration = 3 })
+        end
+    end,
+})
+
+-- ============================
+--         ESP CONFIG
+-- ============================
+
+local Config = {}
+Config.ESP = {
+    Enabled     = false,
+    MaxDistance = 2000,
+    FontSize    = 13,
+    Font        = Enum.Font.Code,
+    FadeOut     = { OnDistance = false },
+    Options     = { Friendcheck = false, FriendcheckRGB = Color3.fromRGB(0, 255, 0) },
+    Drawing = {
+        Names     = { Enabled = false, RGB = Color3.fromRGB(255,255,255), Transparency = 0 },
+        Distances = { Enabled = false, RGB = Color3.fromRGB(255,255,255), Transparency = 0 },
+        Healthbar = {
+            Enabled = false, Width = 3, Transparency = 0,
+            Gradient = false, GradientRGB1 = Color3.fromRGB(255,0,0), GradientRGB2 = Color3.fromRGB(0,255,0),
+            HealthText = false, HealthTextRGB = Color3.fromRGB(255,255,255), HealthTextTransparency = 0, Lerp = false,
+        },
+        Boxes = {
+            Full     = { Enabled = false, Transparency = 0, RGB = Color3.fromRGB(255,255,255) },
+            Corner   = { Enabled = false, Transparency = 0, RGB = Color3.fromRGB(255,255,255) },
+            Bounding = { Enabled = false, Transparency = 0, RGB = Color3.fromRGB(255,255,255) },
+            Filled   = { Enabled = false, Transparency = 0.75 },
+            GradientFill = false, GradientFillRGB1 = Color3.fromRGB(255,255,255), GradientFillRGB2 = Color3.fromRGB(255,255,255),
+            Gradient     = false, GradientRGB1     = Color3.fromRGB(255,255,255), GradientRGB2     = Color3.fromRGB(255,255,255),
+            Animate = false, RotationSpeed = 50,
+        },
+        Chams = {
+            Enabled = false, FillRGB = Color3.fromRGB(255,255,255), OutlineRGB = Color3.fromRGB(255,255,255),
+            Fill_Transparency = 50, Outline_Transparency = 0, Thermal = false, VisibleCheck = false,
+        },
+        Weapons = {
+            Enabled = false, WeaponTextRGB = Color3.fromRGB(255,255,255), Transparency = 0,
+            Gradient = false, GradientRGB1 = Color3.fromRGB(255,255,255), GradientRGB2 = Color3.fromRGB(255,255,255),
+        },
+    },
+    Connections = { RunService = S.RunService },
+}
+
+local DefaultPlayerSettings = {}
+
+-- ============================
+--         ESP FONTS
+-- ============================
+
+local Fonts = {}
+do
+    local function RegisterFont(Name, Weight, Style, Asset)
+        local dir = "BusterUI"
+        if not isfolder(dir)            then makefolder(dir)            end
+        if not isfolder(dir.."/assets") then makefolder(dir.."/assets") end
+        if not isfolder(dir.."/fonts")  then makefolder(dir.."/fonts")  end
+        if isfile(dir.."/assets/"..Asset.Id) then delfile(dir.."/assets/"..Asset.Id) end
+        writefile(dir.."/assets/"..Asset.Id, Asset.Font)
+        local Data = { name = Name, faces = {{ Name = "Normal", weight = Weight, style = Style, assetId = getcustomasset(dir.."/assets/"..Asset.Id) }} }
+        writefile(dir.."/fonts/"..Name..".font", HttpService:JSONEncode(Data))
+        return getcustomasset(dir.."/fonts/"..Name..".font")
+    end
+    local Tahoma      = RegisterFont("Tahoma",      400, "Normal", { Id = "Tahoma.ttf",      Font = game:HttpGet("https://github.com/KingVonOBlockJoyce/OctoHook-UI/raw/refs/heads/main/fs-tahoma-8px%20(3).ttf") })
+    local Pixel       = RegisterFont("Pixel",        400, "Normal", { Id = "Pixel.ttf",        Font = game:HttpGet("https://github.com/KingVonOBlockJoyce/vaderpaste.luau/raw/refs/heads/main/Pixel.ttf") })
+    local Minecraftia = RegisterFont("Minecraftia",  400, "Normal", { Id = "Minecraftia.ttf",  Font = game:HttpGet("https://github.com/i77lhm/storage/raw/refs/heads/main/fonts/Minecraftia-Regular.ttf") })
+    local Verdana     = RegisterFont("Verdana",      400, "Normal", { Id = "Verdana.ttf",      Font = game:HttpGet("https://github.com/i77lhm/storage/raw/refs/heads/main/fonts/Verdana-Font.ttf") })
+    Fonts["Plex"]        = Font.new(Tahoma,      Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    Fonts["Pixel"]       = Font.new(Pixel,        Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    Fonts["Minecraftia"] = Font.new(Minecraftia,  Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    Fonts["Verdana"]     = Font.new(Verdana,       Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+end
+
+-- ============================
+--         ESP ENGINE
+-- ============================
+
+local Players_ESP   = {}
+local RotationAngle = -45
+local Tick          = tick()
+
+local RefreshAllElements = function()
+    for _, v in Players_ESP do
+        if v and v.RefreshElements then v.RefreshElements() end
+    end
+end
+
+do
+    local lplayer  = S.Players.LocalPlayer
+    local Cam      = S.Workspace.CurrentCamera
+    local CoreGui  = game:GetService("CoreGui")
+    local Euphoria = Config.ESP.Connections
+
+    local Functions = {}
+
+    function Functions:Create(Class, Properties)
+        local inst = typeof(Class) == "string" and Instance.new(Class) or Class
+        for k, v in pairs(Properties) do inst[k] = v end
+        return inst
+    end
+
+    Functions.FadeOutOnDist = function(element, distance)
+        local t = math.max(0.1, 1 - (distance / Config.ESP.MaxDistance))
+        if element:IsA("TextLabel")  then element.TextTransparency       = 1 - t
+        elseif element:IsA("ImageLabel") then element.ImageTransparency  = 1 - t
+        elseif element:IsA("UIStroke")   then element.Transparency       = 1 - t
+        elseif element:IsA("Frame")      then element.BackgroundTransparency = 1 - t
+        elseif element:IsA("Highlight")  then element.FillTransparency = 1 - t; element.OutlineTransparency = 1 - t
+        end
+    end
+
+    Functions.AddOutline = function(Frame, Thickness)
+        local function B(pos, size)
+            Functions:Create("Frame", { Parent = Frame, BorderSizePixel = 0, BackgroundColor3 = Color3.new(0,0,0), Position = pos, Size = size, ZIndex = Frame.ZIndex - 1 })
+        end
+        B(UDim2.new(0,-Thickness,0,-Thickness), UDim2.new(1,Thickness*2,0,Thickness))
+        B(UDim2.new(0,-Thickness,1,0),          UDim2.new(1,Thickness*2,0,Thickness))
+        B(UDim2.new(0,-Thickness,0,0),          UDim2.new(0,Thickness,1,0))
+        B(UDim2.new(1,0,0,0),                   UDim2.new(0,Thickness,1,0))
+    end
+
+    local ScreenGui = Functions:Create("ScreenGui", { Parent = CoreGui, Name = "ESPHolder", ResetOnSpawn = false })
+
+    local DupeCheck = function(plr)
+        if ScreenGui:FindFirstChild(plr.Name) then ScreenGui[plr.Name]:Destroy() end
+    end
+
+    local getHealthColor = function(cur, max)
+        return Config.ESP.Drawing.Healthbar.GradientRGB1:Lerp(Config.ESP.Drawing.Healthbar.GradientRGB2, cur / max)
+    end
+
+    local ESP = function(plr)
+        task.spawn(function()
+            if plr == lplayer then return end
+            coroutine.wrap(DupeCheck)(plr)
+
+            local Name        = Functions:Create("TextLabel",  { Visible=false, Parent=ScreenGui, Position=UDim2.new(0.5,0,0,-11), Size=UDim2.new(0,100,0,20), AnchorPoint=Vector2.new(0.5,0.5), BackgroundTransparency=1, TextColor3=Color3.fromRGB(255,255,255), Font=Enum.Font.Code, TextSize=Config.ESP.FontSize, TextStrokeTransparency=0, TextStrokeColor3=Color3.fromRGB(0,0,0), RichText=true })
+            local Distance    = Functions:Create("TextLabel",  { Visible=false, Parent=ScreenGui, Position=UDim2.new(0.5,0,0,11),  Size=UDim2.new(0,100,0,20), AnchorPoint=Vector2.new(0.5,0.5), BackgroundTransparency=1, TextColor3=Color3.fromRGB(255,255,255), Font=Enum.Font.Code, TextSize=Config.ESP.FontSize, TextStrokeTransparency=0, TextStrokeColor3=Color3.fromRGB(0,0,0), RichText=true })
+            local Weapon      = Functions:Create("TextLabel",  { Visible=false, Parent=ScreenGui, Position=UDim2.new(0.5,0,0,31),  Size=UDim2.new(0,100,0,20), AnchorPoint=Vector2.new(0.5,0.5), BackgroundTransparency=1, TextColor3=Color3.fromRGB(255,255,255), Font=Enum.Font.Code, TextSize=Config.ESP.FontSize, TextStrokeTransparency=0, TextStrokeColor3=Color3.fromRGB(0,0,0), RichText=true, Text="None" })
+            local Box         = Functions:Create("Frame",      { Parent=ScreenGui, BackgroundColor3=Color3.fromRGB(0,0,0), BackgroundTransparency=0.75, BorderSizePixel=0 })
+            local Gradient1   = Functions:Create("UIGradient", { Parent=Box,     Enabled=Config.ESP.Drawing.Boxes.GradientFill, Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Config.ESP.Drawing.Boxes.GradientFillRGB1),ColorSequenceKeypoint.new(1,Config.ESP.Drawing.Boxes.GradientFillRGB2)} })
+            local Outline     = Functions:Create("UIStroke",   { Parent=Box,     Enabled=Config.ESP.Drawing.Boxes.Gradient, Transparency=0, Color=Color3.fromRGB(255,255,255), LineJoinMode=Enum.LineJoinMode.Miter })
+            local Gradient2   = Functions:Create("UIGradient", { Parent=Outline, Enabled=Config.ESP.Drawing.Boxes.Gradient, Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Config.ESP.Drawing.Boxes.GradientRGB1),ColorSequenceKeypoint.new(1,Config.ESP.Drawing.Boxes.GradientRGB2)} })
+            local Healthbar   = Functions:Create("Frame",      { Parent=ScreenGui, BackgroundColor3=Color3.fromRGB(255,255,255), BackgroundTransparency=0 })
+            local BehindHealthbar = Functions:Create("Frame",  { BorderColor3=Color3.fromRGB(0,0,0), Parent=ScreenGui, ZIndex=-1, BackgroundColor3=Color3.fromRGB(0,0,0), BackgroundTransparency=0 })
+            local HealthbarGradient = Functions:Create("UIGradient", { Parent=Healthbar, Enabled=Config.ESP.Drawing.Healthbar.Gradient, Rotation=-90, Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Config.ESP.Drawing.Healthbar.GradientRGB1),ColorSequenceKeypoint.new(1,Config.ESP.Drawing.Healthbar.GradientRGB2)} })
+            local HealthText  = Functions:Create("TextLabel",  { Visible=false, Parent=ScreenGui, Position=UDim2.new(0.5,0,0,31), Size=UDim2.new(0,100,0,20), AnchorPoint=Vector2.new(0.5,0.5), BackgroundTransparency=1, TextColor3=Color3.fromRGB(255,255,255), Font=Enum.Font.Code, TextSize=Config.ESP.FontSize, TextStrokeTransparency=0, TextStrokeColor3=Color3.fromRGB(0,0,0), ZIndex=500 })
+            local Chams       = Functions:Create("Highlight",  { Parent=ScreenGui, FillTransparency=1, OutlineTransparency=0, OutlineColor=Color3.fromRGB(119,120,255), DepthMode="AlwaysOnTop" })
+            local WeaponIcon  = Functions:Create("ImageLabel", { Parent=ScreenGui, BackgroundTransparency=1, BorderColor3=Color3.fromRGB(0,0,0), BorderSizePixel=0, Size=UDim2.new(0,40,0,40) })
+            local Gradient3   = Functions:Create("UIGradient", { Parent=WeaponIcon, Rotation=-90, Enabled=Config.ESP.Drawing.Weapons.Gradient, Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Config.ESP.Drawing.Weapons.GradientRGB1),ColorSequenceKeypoint.new(1,Config.ESP.Drawing.Weapons.GradientRGB2)} })
+            local LeftTop         = Functions:Create("Frame", { Parent=ScreenGui, BackgroundColor3=Config.ESP.Drawing.Boxes.Corner.RGB, Position=UDim2.new(0,0,0,0), BorderSizePixel=0, BorderColor3=Color3.new(0,0,0) })
+            local LeftSide        = Functions:Create("Frame", { Parent=ScreenGui, BackgroundColor3=Config.ESP.Drawing.Boxes.Corner.RGB, Position=UDim2.new(0,0,0,0), BorderSizePixel=0, BorderColor3=Color3.new(0,0,0) })
+            local RightTop        = Functions:Create("Frame", { Parent=ScreenGui, BackgroundColor3=Config.ESP.Drawing.Boxes.Corner.RGB, Position=UDim2.new(0,0,0,0), BorderSizePixel=0, BorderColor3=Color3.new(0,0,0) })
+            local RightSide       = Functions:Create("Frame", { Parent=ScreenGui, BackgroundColor3=Config.ESP.Drawing.Boxes.Corner.RGB, Position=UDim2.new(0,0,0,0), BorderSizePixel=0, BorderColor3=Color3.new(0,0,0) })
+            local BottomSide      = Functions:Create("Frame", { Parent=ScreenGui, BackgroundColor3=Config.ESP.Drawing.Boxes.Corner.RGB, Position=UDim2.new(0,0,0,0), BorderSizePixel=0, BorderColor3=Color3.new(0,0,0) })
+            local BottomDown      = Functions:Create("Frame", { Parent=ScreenGui, BackgroundColor3=Config.ESP.Drawing.Boxes.Corner.RGB, Position=UDim2.new(0,0,0,0), BorderSizePixel=0, BorderColor3=Color3.new(0,0,0) })
+            local BottomRightSide = Functions:Create("Frame", { Parent=ScreenGui, BackgroundColor3=Config.ESP.Drawing.Boxes.Corner.RGB, Position=UDim2.new(0,0,0,0), BorderSizePixel=0, BorderColor3=Color3.new(0,0,0) })
+            local BottomRightDown = Functions:Create("Frame", { Parent=ScreenGui, BackgroundColor3=Config.ESP.Drawing.Boxes.Corner.RGB, Position=UDim2.new(0,0,0,0), BorderSizePixel=0, BorderColor3=Color3.new(0,0,0) })
+            local Flag1 = Functions:Create("TextLabel", { Visible=false, Parent=ScreenGui, Position=UDim2.new(1,0,0,0), Size=UDim2.new(0,100,0,20), AnchorPoint=Vector2.new(0.5,0.5), BackgroundTransparency=1, TextColor3=Color3.fromRGB(255,255,255), Font=Enum.Font.Code, TextSize=Config.ESP.FontSize, TextStrokeTransparency=0, TextStrokeColor3=Color3.fromRGB(0,0,0) })
+            local Flag2 = Functions:Create("TextLabel", { Visible=false, Parent=ScreenGui, Position=UDim2.new(1,0,0,0), Size=UDim2.new(0,100,0,20), AnchorPoint=Vector2.new(0.5,0.5), BackgroundTransparency=1, TextColor3=Color3.fromRGB(255,255,255), Font=Enum.Font.Code, TextSize=Config.ESP.FontSize, TextStrokeTransparency=0, TextStrokeColor3=Color3.fromRGB(0,0,0) })
+
+            for _, f in ipairs({LeftTop,LeftSide,RightTop,RightSide,BottomSide,BottomDown,BottomRightSide,BottomRightDown}) do
+                Functions.AddOutline(f, 1)
+            end
+
+            if not plr.Character then plr.CharacterAdded:Wait() end
+            local Humanoid = plr.Character:WaitForChild("Humanoid")
+            local HRP      = plr.Character:WaitForChild("HumanoidRootPart")
+
+            local Pos, OnScreen = Cam:WorldToScreenPoint(HRP.Position)
+            local Dist          = (Cam.CFrame.Position - HRP.Position).Magnitude
+            local Size          = HRP.Size.Y
+            if DefaultPlayerSettings[plr.Name] and DefaultPlayerSettings[plr.Name].RootSettings and DefaultPlayerSettings[plr.Name].RootSettings.Size then
+                Size = DefaultPlayerSettings[plr.Name].RootSettings.Size.Y
+            end
+
+            local health_clamped = math.clamp(Humanoid.Health, 0, Humanoid.MaxHealth)
+            local health         = health_clamped / Humanoid.MaxHealth
+            local scaleFactor    = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
+            local w, h           = 3 * scaleFactor, 4.5 * scaleFactor
+
+            if not Players_ESP[plr.Name] then
+                Players_ESP[plr.Name] = {}
+
+                Players_ESP[plr.Name].RefreshElements = function()
+                    task.spawn(function()
+                        if Config.ESP.Font == Fonts["Plex"] or Config.ESP.Font == Fonts["Pixel"] or Config.ESP.Font == Fonts["Minecraftia"] or Config.ESP.Font == Fonts["Verdana"] then
+                            for _, el in ipairs({HealthText, Name, Distance, Weapon}) do el.FontFace = Config.ESP.Font end
+                        else
+                            for _, el in ipairs({HealthText, Name, Distance, Weapon}) do el.Font = Config.ESP.Font end
+                        end
+
+                        Box.Visible = Config.ESP.Drawing.Boxes.Full.Enabled
+                        if Config.ESP.Drawing.Boxes.Filled.Enabled then
+                            Box.BackgroundColor3       = Color3.fromRGB(255,255,255)
+                            Box.BackgroundTransparency = Config.ESP.Drawing.Boxes.GradientFill and Config.ESP.Drawing.Boxes.Filled.Transparency or 1
+                            Box.BorderSizePixel        = 1
+                        else
+                            Box.BackgroundTransparency = 1
+                        end
+
+                        if not Config.ESP.Drawing.Boxes.Bounding.Enabled or (Config.ESP.Drawing.Boxes.Corner.Enabled and Config.ESP.Drawing.Boxes.Bounding.Enabled) then
+                            for _, f in ipairs({LeftTop,LeftSide,BottomSide,BottomDown,RightTop,RightSide,BottomRightSide,BottomRightDown}) do
+                                f.BackgroundTransparency = Config.ESP.Drawing.Boxes.Corner.Transparency
+                                f.BackgroundColor3       = Config.ESP.Drawing.Boxes.Corner.RGB
+                            end
+                        end
+                        if not Config.ESP.Drawing.Boxes.Corner.Enabled then
+                            for _, f in ipairs({LeftTop,LeftSide,BottomSide,RightSide}) do
+                                f.BackgroundTransparency = Config.ESP.Drawing.Boxes.Bounding.Transparency
+                                f.BackgroundColor3       = Config.ESP.Drawing.Boxes.Bounding.RGB
+                            end
+                        end
+
+                        BottomSide.AnchorPoint      = Vector2.new(0,5); BottomDown.AnchorPoint       = Vector2.new(0,1)
+                        RightTop.AnchorPoint         = Vector2.new(1,0); RightSide.AnchorPoint        = Vector2.new(0,0)
+                        BottomRightSide.AnchorPoint  = Vector2.new(1,1); BottomRightDown.AnchorPoint  = Vector2.new(1,1)
+
+                        if not Config.ESP.Drawing.Boxes.Animate then Gradient1.Rotation = -45; Gradient2.Rotation = -45 end
+                        Gradient1.Color = ColorSequence.new{ColorSequenceKeypoint.new(0,Config.ESP.Drawing.Boxes.GradientFillRGB1),ColorSequenceKeypoint.new(1,Config.ESP.Drawing.Boxes.GradientFillRGB2)}
+                        Gradient2.Color = ColorSequence.new{ColorSequenceKeypoint.new(0,Config.ESP.Drawing.Boxes.GradientRGB1),    ColorSequenceKeypoint.new(1,Config.ESP.Drawing.Boxes.GradientRGB2)}
+
+                        Name.TextSize = Config.ESP.FontSize; Name.TextColor3 = Config.ESP.Drawing.Names.RGB; Name.TextStrokeTransparency = Config.ESP.Drawing.Names.Transparency
+                        Chams.DepthMode = Config.ESP.Drawing.Chams.VisibleCheck and "Occluded" or "AlwaysOnTop"
+                        Chams.FillColor = Config.ESP.Drawing.Chams.FillRGB; Chams.OutlineColor = Config.ESP.Drawing.Chams.OutlineRGB
+                        if not Config.ESP.Drawing.Chams.Thermal then
+                            Chams.OutlineTransparency = Config.ESP.Drawing.Chams.Outline_Transparency / 100
+                            Chams.FillTransparency    = Config.ESP.Drawing.Chams.Fill_Transparency / 100
+                        end
+                        Distance.TextStrokeTransparency = Config.ESP.Drawing.Distances.Transparency; Distance.TextSize = Config.ESP.FontSize; Distance.TextColor3 = Config.ESP.Drawing.Distances.RGB
+                        Weapon.TextStrokeTransparency   = Config.ESP.Drawing.Weapons.Transparency;   Weapon.TextSize   = Config.ESP.FontSize; Weapon.TextColor3   = Config.ESP.Drawing.Weapons.WeaponTextRGB
+                    end)
+                end
+
+                Players_ESP[plr.Name].Health_Changed = function()
+                    health_clamped = math.clamp(Humanoid.Health, 0, Humanoid.MaxHealth)
+                    health = health_clamped / Humanoid.MaxHealth
+                end
+                Players_ESP[plr.Name].Health_Changed()
+
+                Players_ESP[plr.Name].Child_Added = function(Item)
+                    if not Item:IsA("Tool") then return end
+                    Weapon.Text = plr.Character:FindFirstChild(Item.Name) and Item.Name or "None"
+                end
+
+                Players_ESP[plr.Name].ToolConnection_Added   = plr.Character.ChildAdded:Connect(Players_ESP[plr.Name].Child_Added)
+                Players_ESP[plr.Name].ToolConnection_Removed = plr.Character.ChildRemoved:Connect(Players_ESP[plr.Name].Child_Added)
+                Players_ESP[plr.Name].HumanoidConnection     = Humanoid.HealthChanged:Connect(Players_ESP[plr.Name].Health_Changed)
+
+                Players_ESP[plr.Name].CharacterAdded = plr.CharacterAdded:Connect(function(Character)
+                    Humanoid = Character:WaitForChild("Humanoid")
+                    HRP      = Character:WaitForChild("HumanoidRootPart")
+                    Players_ESP[plr.Name].ToolConnection_Added:Disconnect()
+                    Players_ESP[plr.Name].ToolConnection_Removed:Disconnect()
+                    Players_ESP[plr.Name].ToolConnection_Added   = plr.Character.ChildAdded:Connect(Players_ESP[plr.Name].Child_Added)
+                    Players_ESP[plr.Name].ToolConnection_Removed = plr.Character.ChildRemoved:Connect(Players_ESP[plr.Name].Child_Added)
+                    Players_ESP[plr.Name].HumanoidConnection:Disconnect()
+                    Players_ESP[plr.Name].HumanoidConnection = Humanoid.HealthChanged:Connect(Players_ESP[plr.Name].Health_Changed)
+                    Players_ESP[plr.Name].Health_Changed()
+                    Players_ESP[plr.Name].RefreshElements()
+                end)
+
+                Players_ESP[plr.Name].RefreshElements()
+            end
+
+            local Updater = function()
+                local Connection
+                local HideESP = function()
+                    for _, el in ipairs({Box,Name,Distance,Weapon,Healthbar,BehindHealthbar,HealthText,WeaponIcon,LeftTop,LeftSide,BottomSide,BottomDown,RightTop,RightSide,BottomRightSide,BottomRightDown,Flag1,Flag2}) do
+                        el.Visible = false
+                    end
+                    Chams.Enabled = false
+                    if not plr then ScreenGui:Destroy(); Connection:Disconnect() end
+                end
+
+                Connection = Euphoria.RunService.RenderStepped:Connect(function()
+                    if plr.Character and lplayer.Character and Config.ESP.Enabled then
+                        if Humanoid and HRP then
+                            Pos, OnScreen = Cam:WorldToScreenPoint(HRP.Position)
+                            Dist = (Cam.CFrame.Position - HRP.Position).Magnitude
+
+                            if OnScreen and Dist <= Config.ESP.MaxDistance then
+                                Size = HRP.Size.Y
+                                if DefaultPlayerSettings[plr.Name] and DefaultPlayerSettings[plr.Name].RootSettings and DefaultPlayerSettings[plr.Name].RootSettings.Size then
+                                    Size = DefaultPlayerSettings[plr.Name].RootSettings.Size.Y
+                                end
+                                scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
+                                w, h = 3 * scaleFactor, 4.5 * scaleFactor
+
+                                if Config.ESP.FadeOut.OnDistance then
+                                    for _, el in ipairs({Box,Outline,Name,Distance,Weapon,Healthbar,BehindHealthbar,HealthText,WeaponIcon,LeftTop,LeftSide,BottomSide,BottomDown,RightTop,RightSide,BottomRightSide,BottomRightDown,Chams,Flag1,Flag2}) do
+                                        Functions.FadeOutOnDist(el, Dist)
+                                    end
+                                end
+
+                                Chams.Adornee = plr.Character; Chams.Enabled = Config.ESP.Drawing.Chams.Enabled
+                                if Config.ESP.Drawing.Chams.Thermal then
+                                    local b = math.atan(math.sin(tick()*2))*2/math.pi
+                                    Chams.FillTransparency    = Config.ESP.Drawing.Chams.Fill_Transparency    * b * 0.01
+                                    Chams.OutlineTransparency = Config.ESP.Drawing.Chams.Outline_Transparency * b * 0.01
+                                end
+
+                                if not Config.ESP.Drawing.Boxes.Bounding.Enabled or (Config.ESP.Drawing.Boxes.Corner.Enabled and Config.ESP.Drawing.Boxes.Bounding.Enabled) then
+                                    LeftTop.Visible=Config.ESP.Drawing.Boxes.Corner.Enabled;         LeftTop.Position=UDim2.new(0,Pos.X-w/2,0,Pos.Y-h/2); LeftTop.Size=UDim2.new(0,w/5,0,1)
+                                    LeftSide.Visible=Config.ESP.Drawing.Boxes.Corner.Enabled;        LeftSide.Position=UDim2.new(0,Pos.X-w/2,0,Pos.Y-h/2); LeftSide.Size=UDim2.new(0,1,0,h/5)
+                                    BottomSide.Visible=Config.ESP.Drawing.Boxes.Corner.Enabled;      BottomSide.Position=UDim2.new(0,Pos.X-w/2,0,Pos.Y+h/2); BottomSide.Size=UDim2.new(0,1,0,h/5)
+                                    BottomDown.Visible=Config.ESP.Drawing.Boxes.Corner.Enabled;      BottomDown.Position=UDim2.new(0,Pos.X-w/2,0,Pos.Y+h/2); BottomDown.Size=UDim2.new(0,w/5,0,1)
+                                    RightTop.Visible=Config.ESP.Drawing.Boxes.Corner.Enabled;        RightTop.Position=UDim2.new(0,Pos.X+w/2,0,Pos.Y-h/2); RightTop.Size=UDim2.new(0,w/5,0,1)
+                                    RightSide.Visible=Config.ESP.Drawing.Boxes.Corner.Enabled;       RightSide.Position=UDim2.new(0,Pos.X+w/2-1,0,Pos.Y-h/2); RightSide.Size=UDim2.new(0,1,0,h/5)
+                                    BottomRightSide.Visible=Config.ESP.Drawing.Boxes.Corner.Enabled; BottomRightSide.Position=UDim2.new(0,Pos.X+w/2,0,Pos.Y+h/2); BottomRightSide.Size=UDim2.new(0,1,0,h/5)
+                                    BottomRightDown.Visible=Config.ESP.Drawing.Boxes.Corner.Enabled; BottomRightDown.Position=UDim2.new(0,Pos.X+w/2,0,Pos.Y+h/2); BottomRightDown.Size=UDim2.new(0,w/5,0,1)
+                                end
+
+                                if not Config.ESP.Drawing.Boxes.Corner.Enabled then
+                                    LeftTop.Visible=Config.ESP.Drawing.Boxes.Bounding.Enabled;   LeftTop.Position=UDim2.new(0,Pos.X-w/2,0,Pos.Y-h/2); LeftTop.Size=UDim2.new(0,w,0,1)
+                                    LeftSide.Visible=Config.ESP.Drawing.Boxes.Bounding.Enabled;  LeftSide.Position=UDim2.new(0,Pos.X-w/2,0,Pos.Y-h/2); LeftSide.Size=UDim2.new(0,1,0,h)
+                                    BottomSide.Visible=Config.ESP.Drawing.Boxes.Bounding.Enabled;BottomSide.Position=UDim2.new(0,Pos.X-w/2,0,Pos.Y+h/2); BottomSide.Size=UDim2.new(0,w,0,1)
+                                    RightSide.Visible=Config.ESP.Drawing.Boxes.Bounding.Enabled; RightSide.Position=UDim2.new(0,Pos.X+w/2-1,0,Pos.Y-h/2); RightSide.Size=UDim2.new(0,1,0,h)
+                                    BottomRightSide.Visible=false; BottomRightDown.Visible=false; BottomDown.Visible=false; RightTop.Visible=false
+                                end
+
+                                Box.Position=UDim2.new(0,Pos.X-w/2,0,Pos.Y-h/2); Box.Size=UDim2.new(0,w,0,h); Box.Visible=Config.ESP.Drawing.Boxes.Full.Enabled
+                                if Config.ESP.Drawing.Boxes.Animate then
+                                    RotationAngle = RotationAngle + (tick()-Tick)*Config.ESP.Drawing.Boxes.RotationSpeed*math.cos(math.pi/4*tick()-math.pi/2)
+                                    Gradient1.Rotation = RotationAngle; Gradient2.Rotation = RotationAngle
+                                end
+                                Tick = tick()
+
+                                local is_inf = false
+                                if Humanoid.Health ~= Humanoid.Health then health = 1; is_inf = true end
+
+                                Healthbar.Position           = UDim2.new(0,Pos.X-w/2-6,0,Pos.Y-h/2+h*(1-health))
+                                Healthbar.Size               = UDim2.new(0,Config.ESP.Drawing.Healthbar.Width,0,h*health)
+                                Healthbar.BackgroundTransparency = Config.ESP.Drawing.Healthbar.Transparency
+                                BehindHealthbar.Position     = UDim2.new(0,Pos.X-w/2-6,0,Pos.Y-h/2)
+                                BehindHealthbar.Size         = UDim2.new(0,Config.ESP.Drawing.Healthbar.Width,0,h)
+                                BehindHealthbar.BackgroundTransparency = Config.ESP.Drawing.Healthbar.Transparency
+                                HealthbarGradient.Enabled    = Config.ESP.Drawing.Healthbar.Gradient
+                                HealthbarGradient.Color      = ColorSequence.new{ColorSequenceKeypoint.new(0,Config.ESP.Drawing.Healthbar.GradientRGB1),ColorSequenceKeypoint.new(1,Config.ESP.Drawing.Healthbar.GradientRGB2)}
+                                HealthbarGradient.Offset     = Vector2.new(0, health-1)
+
+                                local color          = getHealthColor(health_clamped, Humanoid.MaxHealth)
+                                local healthtexttext = is_inf and "inf" or tostring(math.floor(health_clamped))
+                                if is_inf then color = getHealthColor(Humanoid.MaxHealth, Humanoid.MaxHealth) end
+
+                                Healthbar.BackgroundColor3 = not Config.ESP.Drawing.Healthbar.Gradient and color or Color3.new(1,1,1)
+                                Healthbar.Visible = Config.ESP.Drawing.Healthbar.Enabled; BehindHealthbar.Visible = Config.ESP.Drawing.Healthbar.Enabled
+
+                                if Config.ESP.Drawing.Healthbar.HealthText then
+                                    local pct = is_inf and 100 or math.floor(health_clamped/Humanoid.MaxHealth*100)
+                                    HealthText.Position = UDim2.new(0,Pos.X-w/2-18,0,Pos.Y-h/2+h*(1-pct/100)+3)
+                                    HealthText.Text = healthtexttext; HealthText.TextSize = Config.ESP.FontSize; HealthText.Visible = true
+                                    HealthText.TextStrokeTransparency = Config.ESP.Drawing.Healthbar.HealthTextTransparency
+                                    HealthText.TextColor3 = Config.ESP.Drawing.Healthbar.Lerp and color or Config.ESP.Drawing.Healthbar.HealthTextRGB
+                                else
+                                    HealthText.Visible = false
+                                end
+
+                                Name.Visible = Config.ESP.Drawing.Names.Enabled; Name.Text = plr.Name
+                                if Config.ESP.Options.Friendcheck and lplayer:IsFriendsWith(plr.UserId) then
+                                    Name.Text = string.format('(<font color="rgb(%d,%d,%d)">F</font>) %s', Config.ESP.Options.FriendcheckRGB.R*255, Config.ESP.Options.FriendcheckRGB.G*255, Config.ESP.Options.FriendcheckRGB.B*255, plr.Name)
+                                end
+                                Name.Position = UDim2.new(0,Pos.X,0,Pos.Y-h/2-9)
+
+                                if Config.ESP.Drawing.Distances.Enabled then
+                                    Weapon.Position = UDim2.new(0,Pos.X,0,Pos.Y+h/2+7)
+                                    Distance.Position = UDim2.new(0,Pos.X,0,Pos.Y+h/2+(Weapon.Visible and 18 or 7))
+                                    Distance.Text = string.format("%d Studs", math.floor(Dist)); Distance.Visible = true
+                                else
+                                    Weapon.Position = UDim2.new(0,Pos.X,0,Pos.Y+h/2+8); Distance.Visible = false
+                                end
+
+                                Weapon.Visible = Config.ESP.Drawing.Weapons.Enabled
+                            else HideESP() end
+                        else HideESP() end
+                    else HideESP() end
+                end)
+            end
+            coroutine.wrap(Updater)()
+        end)
+    end
+
+    for _, v in pairs(S.Players:GetPlayers()) do
+        if v ~= lplayer then coroutine.wrap(ESP)(v) end
+        task.wait()
+    end
+
+    S.Players.PlayerAdded:Connect(function(v) coroutine.wrap(ESP)(v) end)
+
+    S.Players.PlayerRemoving:Connect(function(v)
+        if Players_ESP[v.Name] then
+            Players_ESP[v.Name].RefreshElements = nil
+            Players_ESP[v.Name].CharacterAdded:Disconnect()
+            Players_ESP[v.Name].ToolConnection_Added:Disconnect()
+            Players_ESP[v.Name].ToolConnection_Removed:Disconnect()
+            Players_ESP[v.Name] = nil
+        end
+    end)
+end
+
+-- ============================
+--        PLAYERS TAB
+-- ============================
+
+do
+    local LP     = S.Players.LocalPlayer
+    local RunSvc = S.RunService
+    local WS     = S.Workspace
+    local Cam    = WS.CurrentCamera
+
+    local P = {
+        SelectedPlayer    = nil,
+        SpectatePlayer    = false,
+        BringingPlayer    = false,
+        BugPlayer         = false,
+        AutoKill          = false,
+        AutoRagdoll       = false,
+        FlingAll          = false,
+        KillAura          = false,
+        KillAuraRange     = 150,
+        KillAuraWhitelist = {},
+    }
+
+    local function hasTool()
+        local char = LP.Character
+        return char and char:FindFirstChildOfClass("Tool") ~= nil
+    end
+
+    local function getBestFlingPart(char)
+        return char:FindFirstChild("RightLowerLeg")
+            or char:FindFirstChild("LeftLowerLeg")
+            or char:FindFirstChild("LowerTorso")
+    end
+
+    local function kill_gun(targetName, hpart, damage)
+        local fn = getgenv().kill_gun
+        if fn then pcall(fn, targetName, hpart or "HumanoidRootPart", damage or math.huge) end
+    end
+
+    -- multi-tab layout
+    local playerMultiSection = Tabs.PlayerTab:MultiSection({
+        Title     = "Player Tools",
+        Desc      = "Scroll for more tabs",
+        Icon      = "person-standing",
+        Opened    = true,
+        Box       = true,
+        BoxBorder = true,
+    })
+
+    local SelectSection = playerMultiSection:Tab({ Title = "Players",       Icon = "user",   Selected = true  })
+    local ActionSection = playerMultiSection:Tab({ Title = "Actions", Icon = "crosshair", Selected = false })
+    local AuraSection   = playerMultiSection:Tab({ Title = "kill",      Icon = "zap",       Selected = false })
+
+    -- dropdown
+    local playerDropdown
+    playerDropdown = SelectSection:Dropdown({
+        Title            = "Select Player",
+        Icon             = "person-standing",
+        Values           = {},
+        SearchBarEnabled = true,
+        Callback         = function(val) P.SelectedPlayer = val end,
+    })
+
+    local function refreshPlayers()
+        local list = {}
+        for _, p in ipairs(S.Players:GetPlayers()) do
+            if p ~= LP then table.insert(list, p.Name) end
+        end
+        table.sort(list)
+        pcall(function() playerDropdown:Refresh(list, true) end)
+        if P.SelectedPlayer and not table.find(list, P.SelectedPlayer) then
+            P.SelectedPlayer = nil
+        end
+    end
+
+    S.Players.PlayerAdded:Connect(refreshPlayers)
+    S.Players.PlayerRemoving:Connect(refreshPlayers)
+    task.spawn(refreshPlayers)
+
+    -- teleport to player
+    SelectSection:Button({
+        Title    = "Teleport To Player",
+        Icon     = "map-pin",
+        Callback = function()
+            if not P.SelectedPlayer then
+                WindUI:Notify({ Title = "No player selected", Icon = "alert-triangle", Duration = 3 })
+                return
+            end
+            local t = S.Players:FindFirstChild(P.SelectedPlayer)
+            if not t or not t.Character then return end
+            local hrp = t.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                BypassTeleport(hrp.CFrame)
+                WindUI:Notify({ Title = "Teleported to " .. P.SelectedPlayer, Icon = "map-pin", Duration = 3 })
+            end
+        end,
+    })
+
+    -- show money
+    SelectSection:Button({
+        Title    = "Show Player Money",
+        Icon     = "banknote",
+        Callback = function()
+            if not P.SelectedPlayer then
+                WindUI:Notify({ Title = "No player selected", Icon = "alert-triangle", Duration = 3 })
+                return
+            end
+            local p = S.Players:FindFirstChild(P.SelectedPlayer)
+            if not p or not p:FindFirstChild("stored") then
+                WindUI:Notify({ Title = "Data not found", Icon = "alert-triangle", Duration = 3 })
+                return
+            end
+            local st     = p.stored
+            local bank   = st:FindFirstChild("Bank")        and tostring(st.Bank.Value)        or "N/A"
+            local filthy = st:FindFirstChild("FilthyStack") and tostring(st.FilthyStack.Value) or "N/A"
+            local wallet = st:FindFirstChild("Money")       and tostring(st.Money.Value)       or "N/A"
+            WindUI:Notify({
+                Title    = P.SelectedPlayer .. " — Money",
+                Content  = "Bank: " .. bank .. "  |  Filthy: " .. filthy .. "  |  Wallet: " .. wallet,
+                Icon     = "banknote",
+                Duration = 8,
+            })
+        end,
+    })
+
+    -- spectate
+    ActionSection:Toggle({
+        Title    = "Spectate Player",
+        Icon     = "eye",
+        Value    = false,
+        Callback = function(state)
+            P.SpectatePlayer = state
+            if not state then
+                local char = LP.Character
+                local hum  = char and char:FindFirstChildOfClass("Humanoid")
+                if hum then Cam.CameraSubject = hum end
+            end
+        end,
+    })
+
+    -- bring
+    ActionSection:Toggle({
+        Title    = "Bring Player — Client",
+        Icon     = "arrow-down-to-line",
+        Value    = false,
+        Callback = function(state) P.BringingPlayer = state end,
+    })
+
+    -- auto kill
+    ActionSection:Toggle({
+        Title    = "Auto Kill — Hold Gun",
+        Icon     = "skull",
+        Value    = false,
+        Callback = function(state) P.AutoKill = state end,
+    })
+
+    -- auto ragdoll
+    ActionSection:Toggle({
+        Title    = "Auto Ragdoll — Hold Gun",
+        Icon     = "activity",
+        Value    = false,
+        Callback = function(state) P.AutoRagdoll = state end,
+    })
+
+    -- ragdoll all
+    ActionSection:Toggle({
+        Title    = "Ragdoll All — Hold Gun",
+        Icon     = "wind",
+        Value    = false,
+        Callback = function(state) P.FlingAll = state end,
+    })
+
+    -- bug/kill vehicle
+    ActionSection:Toggle({
+        Title    = "Bug/Kill Player — Vehicle",
+        Icon     = "car",
+        Value    = false,
+        Callback = function(state) P.BugPlayer = state end,
+    })
+
+    -- kill aura
+    AuraSection:Toggle({
+        Title    = "Kill Aura — Hold Gun",
+        Icon     = "zap",
+        Value    = false,
+        Callback = function(state) P.KillAura = state end,
+    })
+
+    AuraSection:Slider({
+        Title    = "Kill Aura Range",
+        Icon     = "ruler",
+        Min      = 10,
+        Max      = 500,
+        Default  = 150,
+        Suffix   = " studs",
+        Callback = function(val) P.KillAuraRange = val end,
+    })
+
+    -- spectate loop
+    RunSvc.RenderStepped:Connect(function()
+        if not P.SpectatePlayer then
+            local char = LP.Character
+            local hum  = char and char:FindFirstChildOfClass("Humanoid")
+            if hum and Cam.CameraSubject ~= hum then Cam.CameraSubject = hum end
+            return
+        end
+        if not P.SelectedPlayer then return end
+        local t = S.Players:FindFirstChild(P.SelectedPlayer)
+        if not t or not t.Character then return end
+        local hum  = t.Character:FindFirstChildOfClass("Humanoid")
+        local root = t.Character:FindFirstChild("HumanoidRootPart")
+        if hum and hum.Health > 0 then
+            if Cam.CameraSubject ~= hum then Cam.CameraSubject = hum end
+        elseif root then
+            if Cam.CameraSubject ~= root then Cam.CameraSubject = root end
+        end
+    end)
+
+    -- bring loop
+    task.spawn(function()
+        while task.wait() do
+            if not P.BringingPlayer or not P.SelectedPlayer then continue end
+            local lc = LP.Character
+            if not lc then continue end
+            local lhrp = lc:FindFirstChild("HumanoidRootPart")
+            if not lhrp then continue end
+            local t = S.Players:FindFirstChild(P.SelectedPlayer)
+            if not t or not t.Character then continue end
+            local thrp = t.Character:FindFirstChild("HumanoidRootPart")
+            if thrp then pcall(function() thrp.CFrame = lhrp.CFrame * CFrame.new(0, 0, -2) end) end
+        end
+    end)
+
+    -- auto kill loop
+    task.spawn(function()
+        while task.wait(0.3) do
+            if not P.AutoKill or not P.SelectedPlayer or not hasTool() then continue end
+            local t = S.Players:FindFirstChild(P.SelectedPlayer)
+            if not t or not t.Character then continue end
+            local hum = t.Character:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 or hum:GetState() == Enum.HumanoidStateType.Physics then continue end
+            kill_gun(P.SelectedPlayer, "Head", math.huge)
+        end
+    end)
+
+    -- auto ragdoll loop
+    task.spawn(function()
+        while task.wait(2) do
+            if not P.AutoRagdoll or not P.SelectedPlayer or not hasTool() then continue end
+            local t = S.Players:FindFirstChild(P.SelectedPlayer)
+            if not t or not t.Character then continue end
+            local hum = t.Character:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 or hum:GetState() == Enum.HumanoidStateType.Physics then continue end
+            kill_gun(P.SelectedPlayer, "RightUpperLeg", 0.01)
+        end
+    end)
+
+    -- ragdoll all loop
+    task.spawn(function()
+        while true do
+            if P.FlingAll and hasTool() then
+                for _, t in ipairs(S.Players:GetPlayers()) do
+                    if t ~= LP and t.Character then
+                        local part = getBestFlingPart(t.Character)
+                        if part then kill_gun(t.Name, part.Name, 0.01) end
+                    end
+                end
+                task.wait(0.05)
+            else
+                task.wait(0.1)
+            end
+        end
+    end)
+
+    -- bug/kill vehicle loop
+    task.spawn(function()
+        while task.wait() do
+            if not P.BugPlayer or not P.SelectedPlayer then continue end
+            local lc = LP.Character
+            if not lc or not lc:FindFirstChild("HumanoidRootPart") then continue end
+            local t = S.Players:FindFirstChild(P.SelectedPlayer)
+            if not t or not t.Character or not t.Character:FindFirstChild("HumanoidRootPart") then continue end
+            local car
+            if WS:FindFirstChild("CivCars") then
+                for _, v in ipairs(WS.CivCars:GetChildren()) do
+                    if v:FindFirstChild("DriveSeat") and not v.DriveSeat.Occupant then
+                        car = v; break
+                    end
+                end
+            end
+            if not car then continue end
+            pcall(function()
+                if not car:GetAttribute("Usable") then
+                    car.DriveSeat:Sit(lc.Humanoid)
+                    car:SetAttribute("Usable", true)
+                    task.wait(1)
+                    lc.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    lc.Humanoid.Sit = false
+                end
+                task.wait()
+                if not car.PrimaryPart and car:FindFirstChild("Body") then
+                    car.PrimaryPart = car.Body:FindFirstChild("#Weight")
+                end
+                if car.PrimaryPart then
+                    car:SetPrimaryPartCFrame(t.Character.HumanoidRootPart.CFrame)
+                end
+            end)
+        end
+    end)
+
+    -- kill aura loop
+    task.spawn(function()
+        while task.wait(0.1) do
+            if not P.KillAura or not hasTool() then continue end
+            local lc = LP.Character
+            if not lc then continue end
+            local lhrp = lc:FindFirstChild("HumanoidRootPart")
+            if not lhrp then continue end
+            for _, t in ipairs(S.Players:GetPlayers()) do
+                if t == LP or table.find(P.KillAuraWhitelist, t.Name) then continue end
+                if not t.Character then continue end
+                local thrp = t.Character:FindFirstChild("HumanoidRootPart")
+                local hum  = t.Character:FindFirstChildOfClass("Humanoid")
+                if not thrp or not hum or hum.Health <= 0 then continue end
+                if (lhrp.Position - thrp.Position).Magnitude <= P.KillAuraRange then
+                    kill_gun(t.Name, "HumanoidRootPart", math.huge)
+                end
+            end
+        end
+    end)
+end
+
+-- ============================
+--         ESP TAB UI
+-- ============================
+
+Tabs.EspTab:Toggle({
+    Title    = "Enable ESP",
+    Value    = false,
+    Callback = function(v) Config.ESP.Enabled = v end,
+})
+
+Tabs.EspTab:Toggle({
+    Title    = "Show Names",
+    Value    = false,
+    Callback = function(v) Config.ESP.Drawing.Names.Enabled = v end,
+})
+
+Tabs.EspTab:Toggle({
+    Title    = "Show Distance",
+    Value    = false,
+    Callback = function(v) Config.ESP.Drawing.Distances.Enabled = v end,
+})
+
+Tabs.EspTab:Toggle({
+    Title    = "Show Healthbar",
+    Value    = false,
+    Callback = function(v) Config.ESP.Drawing.Healthbar.Enabled = v end,
+})
+
+Tabs.EspTab:Toggle({
+    Title    = "Health Text",
+    Value    = false,
+    Callback = function(v) Config.ESP.Drawing.Healthbar.HealthText = v end,
+})
+
+Tabs.EspTab:Toggle({
+    Title    = "Corner Boxes",
+    Value    = false,
+    Callback = function(v) Config.ESP.Drawing.Boxes.Corner.Enabled = v; RefreshAllElements() end,
+})
+
+Tabs.EspTab:Toggle({
+    Title    = "Chams",
+    Value    = false,
+    Callback = function(v) Config.ESP.Drawing.Chams.Enabled = v end,
+})
+
+Tabs.EspTab:Toggle({
+    Title    = "Show Weapon",
+    Value    = false,
+    Callback = function(v) Config.ESP.Drawing.Weapons.Enabled = v end,
+})
+
+Tabs.EspTab:Slider({
+    Title    = "Max Distance",
+    Min      = 100,
+    Max      = 5000,
+    Default  = 2000,
+    Suffix   = " studs",
+    Callback = function(v) Config.ESP.MaxDistance = v end,
+})
+
+-- ─── GUN TAB ──────────────────────────────────────────────────────────────────
+
+do
+    local gunMultiSection = Tabs.GunTab:MultiSection({ Title = "Gun Mods", Desc = "reminder everyone can see this..", Icon = "rbxassetid://74707737394329", Opened = true, Box = true, BoxBorder = true })
+
+    local gunModsTab    = gunMultiSection:Tab({ Title = "Mods",    Icon = "rbxassetid://74707737394329",      Selected = true  })
+    local gunSlidersTab = gunMultiSection:Tab({ Title = "Sliders", Icon = "target",     Selected = false })
+    local gunServerTab  = gunMultiSection:Tab({ Title = "Bullets",  Icon = "server",      Selected = false })
+    local gunSoundsTab  = gunMultiSection:Tab({ Title = "Sounds",  Icon = "music",       Selected = false })
+
+    local GunTogglesSection = gunModsTab
+    local XenoModsSection   = gunModsTab
+    local GunSlidersSection = gunSlidersTab
+    local BulletModSection  = gunServerTab
+    local SoundsSection     = gunSoundsTab
+
+    local LP        = S.LocalPlayer
+    local RunSvc    = Services.RunService
+    local RS        = Services.ReplicatedStorage
+
+    -- ── WEAPON MOD ENGINE ──────────────────────────────────────────────────────
+
+    local Mods = {
+        InfiniteAmmo       = false, InfiniteClips    = false,
+        InfiniteDamage     = false, Automatic        = false,
+        RainbowGuns        = false, ModifyFireRate   = false,
+        ModifyReloadSpeed  = false, ModifyEquipSpeed = false,
+        ModifySpreadValue  = false, ModifyRecoilValue= false,
+        DisableJamming     = false,
+        FireRateSpeed      = 60,   ReloadSpeed       = 50,
+        EquipSpeed         = 50,   SpreadPercentage  = 50,
+        RecoilPercentage   = 50,
+    }
+
+    local OldWeaponValues = {}
+    local SetInfiniteAmmo, SetInfiniteClips = nil, nil
+
+    local function GetAllTools(localOnly)
+        local result = {}
+        local sources = { not localOnly and game:GetService("Lighting"), LP.Backpack, LP.Character }
+        for _, src in next, sources do
+            if type(src) == "userdata" then
+                for _, v in next, src:GetChildren() do result[#result + 1] = v end
+            end
+        end
+        return result
+    end
+
+    local function GetPct(base, pct)
+        return base * (math.max(0, math.min(100, pct)) / 100)
+    end
+
+    local function ModWeapon(Weapon)
+        local Module = Weapon:FindFirstChildOfClass("ModuleScript")
+        if not (Module and Module.Name == "Setting") then return end
+        Module = require(Module)
+        local Old = OldWeaponValues[Weapon.Name]
+        if not Old then return end
+
+        if SetInfiniteAmmo == nil then SetInfiniteAmmo = true end
+        if SetInfiniteClips == nil then SetInfiniteClips = true end
+
+        local gs = getsenv(Weapon:FindFirstChild("GunScript_Local"))
+        if Mods.InfiniteClips then
+            debug.setupvalue(gs.Reload, 3, 10000); SetInfiniteClips = true
+        elseif SetInfiniteClips == true then
+            debug.setupvalue(gs.Reload, 3, Old.AmmoPerMag); SetInfiniteClips = false
+        end
+
+        if Mods.InfiniteAmmo then
+            debug.setupvalue(gs.Reload, 1, 1e1); SetInfiniteAmmo = true
+        elseif SetInfiniteAmmo == false then
+            debug.setupvalue(gs.Reload, 1, Old.AmmoPerMag); SetInfiniteAmmo = false
+        end
+
+        Module.LimitedAmmoEnabled = false
+        Module.FireRate    = Mods.ModifyFireRate    and GetPct(Old.FireRate,   Mods.FireRateSpeed)    or Old.FireRate
+        Module.ReloadTime  = Mods.ModifyReloadSpeed and GetPct(Old.ReloadTime, Mods.ReloadSpeed)      or Old.ReloadTime
+        Module.EquipTime   = Mods.ModifyEquipSpeed  and GetPct(Old.EquipTime,  Mods.EquipSpeed)       or Old.EquipTime
+        Module.Recoil      = Mods.ModifyRecoilValue and GetPct(Old.Recoil,     Mods.RecoilPercentage) or Old.Recoil
+        Module.BaseDamage  = Mods.InfiniteDamage    and math.huge or Old.BaseDamage
+        Module.Auto        = Mods.Automatic         or Old.Auto
+        Module.JamChance   = Mods.DisableJamming    and 0 or Old.JamChance
+        if Module.SpreadXY then Module.SpreadXY = Mods.ModifySpreadValue and GetPct(Old.SpreadXY, Mods.SpreadPercentage) or Old.SpreadXY end
+        if Module.SpreadYX then Module.SpreadYX = Mods.ModifySpreadValue and GetPct(Old.SpreadYX, Mods.SpreadPercentage) or Old.SpreadYX end
+        if Module.Spread   then Module.Spread   = Mods.ModifySpreadValue and GetPct(Old.Spread,   Mods.SpreadPercentage) or Old.Spread   end
+        Module.SpreadX = Mods.ModifySpreadValue and GetPct(Old.SpreadX, Mods.SpreadPercentage) or Old.SpreadX
+        Module.SpreadY = Mods.ModifySpreadValue and GetPct(Old.SpreadY, Mods.SpreadPercentage) or Old.SpreadY
+    end
+
+    local function ModWeapons()
+        for _, w in next, GetAllTools(true) do if w:IsA("Tool") then ModWeapon(w) end end
+    end
+
+    local function SetValues()
+        for _, w in next, GetAllTools() do
+            if w:IsA("Tool") then
+                local m = w:FindFirstChildOfClass("ModuleScript")
+                if m and m.Name == "Setting" then m = require(m) end
+                if type(m) == "table" and not OldWeaponValues[w.Name] then
+                    OldWeaponValues[w.Name] = {}
+                    for k, v in next, m do OldWeaponValues[w.Name][k] = v end
+                end
+            end
+        end
+    end
+
+    if not LP.Character then LP.CharacterAdded:Wait() end
+
+    local function hookTool(v)
+        if not v:IsA("Tool") then return end
+        SetValues(); ModWeapon(v)
+    end
+
+    LP.Character.ChildAdded:Connect(hookTool)
+    LP.Backpack.ChildAdded:Connect(hookTool)
+    LP.CharacterAdded:Connect(function(char)
+        char.ChildAdded:Connect(hookTool)
+        LP.Backpack.ChildAdded:Connect(hookTool)
+    end)
+
+    -- ── RAINBOW GUNS ───────────────────────────────────────────────────────────
+
+    local rainbowOriginals = {}
+    local rainbowWasOn     = false
+
+    local function applyRainbow(gun, hue)
+        if not gun or not gun:IsA("Tool") then return end
+        if not rainbowOriginals[gun] then
+            rainbowOriginals[gun] = {}
+            for _, p in ipairs(gun:GetDescendants()) do
+                if p:IsA("BasePart") and p.Name ~= "Handle" then
+                    rainbowOriginals[gun][p] = { Color = p.Color, Material = p.Material }
+                end
+            end
+        end
+        for _, p in ipairs(gun:GetDescendants()) do
+            if p:IsA("BasePart") and p.Name ~= "Handle" then
+                p.Color = Color3.fromHSV(hue, 1, 0.7)
+                p.Material = Enum.Material.SmoothPlastic
+            end
+        end
+    end
+
+    local function restoreRainbow()
+        for gun, parts in pairs(rainbowOriginals) do
+            for p, d in pairs(parts) do
+                if p and p.Parent then p.Color = d.Color; p.Material = d.Material end
+            end
+        end
+        rainbowOriginals = {}
+    end
+
+    RunSvc.RenderStepped:Connect(function()
+        if not Mods.RainbowGuns then
+            if rainbowWasOn then restoreRainbow(); rainbowWasOn = false end
+            return
+        end
+        rainbowWasOn = true
+        local hue = (tick()) % 1
+        if LP.Character then
+            for _, t in ipairs(LP.Character:GetChildren()) do if t:IsA("Tool") then applyRainbow(t, hue) end end
+        end
+        for _, t in ipairs(LP.Backpack:GetChildren()) do if t:IsA("Tool") then applyRainbow(t, hue) end end
+    end)
+
+    -- ── TOGGLES ────────────────────────────────────────────────────────────────
+
+    local function modToggle(sec, title, key)
+        sec:Toggle({ Title = title, Value = false, Callback = function(v) Mods[key] = v; ModWeapons() end })
+    end
+
+    modToggle(GunTogglesSection, "Infinite Ammo",       "InfiniteClips")
+    modToggle(GunTogglesSection, "Infinite Clips",      "InfiniteAmmo")
+    modToggle(GunTogglesSection, "One Tap",             "InfiniteDamage")
+    modToggle(GunTogglesSection, "Fully Automatic",     "Automatic")
+    modToggle(GunTogglesSection, "Rainbow Weapons",     "RainbowGuns")
+    modToggle(GunSlidersSection, "Modify Fire Rate",    "ModifyFireRate")
+    modToggle(GunSlidersSection, "Modify Reload Speed", "ModifyReloadSpeed")
+    modToggle(GunSlidersSection, "Modify Equip Speed",  "ModifyEquipSpeed")
+    modToggle(GunSlidersSection, "Modify Spread Value", "ModifySpreadValue")
+    modToggle(GunSlidersSection, "Modify Recoil Value", "ModifyRecoilValue")
+    modToggle(GunSlidersSection, "Disable Jamming",     "DisableJamming")
+
+    -- ── SLIDERS ────────────────────────────────────────────────────────────────
+
+    GunSlidersSection:Slider({ Title = "Fire Rate %",    Min = 30,  Max = 100, Default = 60, Callback = function(v) Mods.FireRateSpeed    = v; if Mods.ModifyFireRate    then ModWeapons() end end })
+    GunSlidersSection:Slider({ Title = "Spread %",       Min = 0,   Max = 100, Default = 50, Callback = function(v) Mods.SpreadPercentage  = v; if Mods.ModifySpreadValue then ModWeapons() end end })
+    GunSlidersSection:Slider({ Title = "Recoil %",       Min = 0,   Max = 100, Default = 50, Callback = function(v) Mods.RecoilPercentage  = v; if Mods.ModifyRecoilValue then ModWeapons() end end })
+    GunSlidersSection:Slider({ Title = "Reload Speed %", Min = 0,   Max = 100, Default = 50, Callback = function(v) Mods.ReloadSpeed       = v; if Mods.ModifyReloadSpeed then ModWeapons() end end })
+    GunSlidersSection:Slider({ Title = "Equip Speed %",  Min = 0,   Max = 100, Default = 50, Callback = function(v) Mods.EquipSpeed        = v; if Mods.ModifyEquipSpeed  then ModWeapons() end end })
+
+    -- ── XENO / MOBILE INF AMMO ─────────────────────────────────────────────────
+
+    XenoModsSection:Button({
+        Title = "Inf Ammo (Xeno)",
+        Callback = function()
+            for _, v in ipairs(LP.Character:GetChildren()) do
+                if v:IsA("Tool") and v:FindFirstChild("GunScript_Server") then
+                    v.GunScript_Server:WaitForChild("ChangeMagAndAmmo"):FireServer(99999, 0)
+                end
+            end
+            WindUI:Notify({ Title = "Inf Ammo", Content = "Drop & re-equip your gun.", Icon = "check", Duration = 4 })
+        end
+    })
+
+    XenoModsSection:Button({
+        Title = "Inf Clips (Xeno)",
+        Callback = function()
+            for _, v in ipairs(LP.Character:GetChildren()) do
+                if v:IsA("Tool") and v:FindFirstChild("GunScript_Server") then
+                    local gun = v.GunScript_Server
+                    local mag
+                    if     gun:FindFirstChild("Mag")      and gun.Mag:IsA("NumberValue")             then mag = gun.Mag.Value
+                    elseif gun:FindFirstChild("Ammo")     and gun.Ammo:IsA("NumberValue")            then mag = gun.Ammo.Value
+                    elseif gun:FindFirstChild("Stats")    and gun.Stats:FindFirstChild("MagSize")    then mag = gun.Stats.MagSize.Value
+                    elseif gun:FindFirstChild("Config")   and gun.Config:FindFirstChild("MagSize")   then mag = gun.Config.MagSize.Value
+                    elseif gun:FindFirstChild("Settings") and gun.Settings:FindFirstChild("MagSize") then mag = gun.Settings.MagSize.Value
+                    end
+                    if mag then gun:WaitForChild("ChangeMagAndAmmo"):FireServer(mag, 99999) end
+                end
+            end
+            WindUI:Notify({ Title = "Inf Clips", Content = "Drop & re-equip your gun.", Icon = "check", Duration = 4 })
+        end
+    })
+
+    -- ── CUSTOM FIRE SOUNDS ─────────────────────────────────────────────────────
+
+    local SoundCFG = {
+        Enabled = false, CurrentId = "",
+        List = {
+            { Name = "Neverlose Classic", Id = "rbxassetid://8679627751"      },
+            { Name = "Fatality",          Id = "rbxassetid://138378419413244" },
+            { Name = "Bubble Pop",        Id = "rbxassetid://119697580657161" },
+            { Name = "Realistic",         Id = "rbxassetid://2781019930"      },
+            { Name = "Christmas Bells",   Id = "rbxassetid://100156067670983" },
+            { Name = "RayGun",            Id = "rbxassetid://131179973"       },
+        }
+    }
+
+    local OriginalSounds = {}
+
+    local function ApplyToTool(tool)
+        for _, obj in ipairs(tool:GetDescendants()) do
+            if obj:IsA("Sound") and obj.Parent.Name == "FireSounds" then
+                if not OriginalSounds[obj] then OriginalSounds[obj] = obj.SoundId end
+                obj.SoundId = (SoundCFG.Enabled and SoundCFG.CurrentId ~= "") and SoundCFG.CurrentId or OriginalSounds[obj]
+            end
+        end
+    end
+
+    local function ScanContainer(container)
+        for _, obj in ipairs(container:GetChildren()) do if obj:IsA("Tool") then ApplyToTool(obj) end end
+        container.ChildAdded:Connect(function(obj)
+            if obj:IsA("Tool") then task.wait(0.1); ApplyToTool(obj) end
+        end)
+    end
+
+    ScanContainer(LP.Backpack)
+    if LP.Character then ScanContainer(LP.Character) end
+    LP.CharacterAdded:Connect(function(char) ScanContainer(char) end)
+
+    local SoundNames = {}
+    for _, s in ipairs(SoundCFG.List) do table.insert(SoundNames, s.Name) end
+
+    local function refreshSounds()
+        if LP.Character then for _, t in ipairs(LP.Character:GetChildren()) do if t:IsA("Tool") then ApplyToTool(t) end end end
+        for _, t in ipairs(LP.Backpack:GetChildren()) do if t:IsA("Tool") then ApplyToTool(t) end end
+    end
+
+    SoundsSection:Dropdown({
+        Title   = "Select Sound",
+        Options = SoundNames,
+        Callback = function(val)
+            for _, s in ipairs(SoundCFG.List) do
+                if s.Name == val then SoundCFG.CurrentId = s.Id; break end
+            end
+            refreshSounds()
+        end
+    })
+
+    SoundsSection:Toggle({
+        Title = "Enable Custom Sound", Value = false,
+        Callback = function(v) SoundCFG.Enabled = v; refreshSounds() end
+    })
+
+    -- ── SERVERSIDE BULLET MODS ─────────────────────────────────────────────────
+
+    local modEnabled      = false
+    local modLightOn      = false
+    local modParticleOn   = false
+    local modLightColor   = Color3.new(1, 1, 1)
+    local modParticleColor= Color3.new(1, 0, 0)
+    local modSpeed        = 275
+    local modGravity      = 0.3
+    local modMeshScale    = Vector3.new(4, 4, 4)
+    local modSize         = Vector3.new(4, 4, 4)
+    local modMaterial     = Enum.Material.Neon
+    local origVals        = {}
+
+    local function storeOrig(v)
+        if origVals[v] then return end
+        origVals[v] = {
+            BulletSpeed = v.BulletSpeed, DropGravity = v.DropGravity,
+            BulletMeshEnabled = v.BulletMeshEnabled, BulletMeshID = v.BulletMeshID,
+            BulletTextureID = v.BulletTextureID, BulletMeshScale = v.BulletMeshScale,
+            BulletSize = v.BulletSize, BulletTransparency = v.BulletTransparency,
+            BulletMaterial = v.BulletMaterial, BulletLightEnabled = v.BulletLightEnabled,
+            BulletLightBrightness = v.BulletLightBrightness, BulletLightRange = v.BulletLightRange,
+            BulletLightColor = v.BulletLightColor, BulletParticleEnaled = v.BulletParticleEnaled,
+            BulletParticleColor = v.BulletParticleColor, BulletParticleSize = v.BulletParticleSize,
+            BulletParticleRate = v.BulletParticleRate, BulletParticleLifetime = v.BulletParticleLifetime,
+            BulletParticleSpeed = v.BulletParticleSpeed, BulletParticleTexture = v.BulletParticleTexture,
+            BulletTracerEnabled = v.BulletTracerEnabled, BulletTrailEnabled = v.BulletTrailEnabled,
+        }
+    end
+
+    local function restoreOrig(v)
+        local o = origVals[v]
+        if o then for k, vv in pairs(o) do v[k] = vv end end
+    end
+
+    local function applyMod()
+        for _, v in getgc(true) do
+            if typeof(v) == "table" and rawget(v, "BulletSpeed") then
+                storeOrig(v)
+                v.BulletSpeed = modSpeed; v.DropGravity = modGravity
+                v.BulletMeshEnabled = false; v.BulletMeshScale = modMeshScale
+                v.BulletSize = modSize; v.BulletTransparency = 1; v.BulletMaterial = modMaterial
+                v.BulletLightEnabled = modLightOn; v.BulletLightBrightness = 9e9; v.BulletLightRange = 99999
+                if v.BulletLightColor then v.BulletLightColor = modLightColor end
+                v.BulletParticleEnaled = modParticleOn
+                if v.BulletParticleColor then v.BulletParticleColor = modParticleColor end
+                v.BulletParticleSize = NumberSequence.new({ NumberSequenceKeypoint.new(0, 9e9), NumberSequenceKeypoint.new(1, 1) })
+                v.BulletParticleRate = 9e9
+                v.BulletParticleLifetime = NumberRange.new(9e9, 9e9)
+                v.BulletParticleSpeed = NumberRange.new(0.3, 9e9)
+                v.BulletTracerEnabled = true; v.BulletTrailEnabled = true
+            end
+        end
+    end
+
+    local function restoreMod()
+        for _, v in getgc(true) do
+            if typeof(v) == "table" and rawget(v, "BulletSpeed") then restoreOrig(v) end
+        end
+    end
+
+    BulletModSection:Toggle({
+        Title = "Enable Bullet Mod", Value = false,
+        Callback = function(val)
+            modEnabled = val
+            if val then applyMod(); WindUI:Notify({ Title = "Bullet Mod On",  Icon = "zap",   Duration = 3 })
+            else       restoreMod(); WindUI:Notify({ Title = "Bullet Mod Off", Icon = "zap-off", Duration = 3 }) end
+        end
+    })
+
+    BulletModSection:Toggle({
+        Title = "Flashbang Bullet", Value = false,
+        Callback = function(val) modLightOn = val; if modEnabled then applyMod() end end
+    })
+
+    BulletModSection:Toggle({
+        Title = "Flame Bullet", Value = false,
+        Callback = function(val) modParticleOn = val; if modEnabled then applyMod() end end
+    })
+
+    -- ── TORNADO BULLETS ────────────────────────────────────────────────────────
+
+    local tornadoOn       = false
+    local tornadoSpeed    = 250
+    local tornadoOriginals= {}
+
+    local function storeTornado(v)
+        if tornadoOriginals[v] then return end
+        tornadoOriginals[v] = {
+            BulletSpeed = v.BulletSpeed, DropGravity = v.DropGravity,
+            BulletSize = v.BulletSize, BulletTransparency = v.BulletTransparency,
+            BulletMeshEnabled = v.BulletMeshEnabled, BulletMeshID = v.BulletMeshID,
+            BulletTextureID = v.BulletTextureID, BulletMeshScale = v.BulletMeshScale,
+        }
+    end
+
+    local function restoreTornado(v)
+        local o = tornadoOriginals[v]
+        if o then for k, vv in pairs(o) do v[k] = vv end end
+    end
+
+    local function applyTornado()
+        for _, v in getgc(true) do
+            if typeof(v) == "table" and rawget(v, "BulletSpeed") then
+                storeTornado(v)
+                v.BulletSpeed = tornadoSpeed; v.DropGravity = 0
+                v.BulletSize = Vector3.new(1,1,1); v.BulletMeshScale = Vector3.new(1,1,1)
+                v.BulletTransparency = 0; v.BulletMeshEnabled = true
+                v.BulletMeshID    = "rbxassetid://92551368238826"
+                v.BulletTextureID = "rbxassetid://92551368238826"
+            end
+        end
+    end
+
+    local function revertTornado()
+        for _, v in getgc(true) do
+            if typeof(v) == "table" and rawget(v, "BulletSpeed") then restoreTornado(v) end
+        end
+        if modEnabled then applyMod() end
+    end
+
+    BulletModSection:Toggle({
+        Title = "Tornado Bullets", Value = false,
+        Callback = function(val)
+            tornadoOn = val
+            if val then applyTornado(); WindUI:Notify({ Title = "Tornado On",  Icon = "wind", Duration = 3 })
+            else       revertTornado(); WindUI:Notify({ Title = "Tornado Off", Icon = "wind", Duration = 3 }) end
+        end
+    })
+
+    BulletModSection:Slider({
+        Title = "Tornado Speed", Min = 1, Max = 500, Default = 250,
+        Callback = function(val) tornadoSpeed = val; if tornadoOn then applyTornado() end end
+    })
+
+    -- ── SPRAY PAINT BULLETS ────────────────────────────────────────────────────
+
+    local SPRAY_TEXTURE = {86197898387643}
+    local sprayState = {
+        enabled = false, size = 12, visibleTime = 100, fadeTime = 12,
+        backups = setmetatable({}, { __mode = "k" }),
+    }
+
+    local function sprayBackup(t)
+        if sprayState.backups[t] then return end
+        local inner = rawget(t, 1)
+        sprayState.backups[t] = {
+            BulletHoleEnabled = rawget(t,"BulletHoleEnabled"), BulletHoleSize = rawget(t,"BulletHoleSize"),
+            BulletHoleVisibleTime = rawget(t,"BulletHoleVisibleTime"), BulletHoleFadeTime = rawget(t,"BulletHoleFadeTime"),
+            BulletHoleTexture = rawget(t,"BulletHoleTexture"),
+            inner1 = (typeof(inner) == "table") and rawget(inner, 1) or nil,
+        }
+    end
+
+    local function sprayRestore(t)
+        local b = sprayState.backups[t]
+        if not b then return end
+        rawset(t,"BulletHoleEnabled",b.BulletHoleEnabled); rawset(t,"BulletHoleSize",b.BulletHoleSize)
+        rawset(t,"BulletHoleVisibleTime",b.BulletHoleVisibleTime); rawset(t,"BulletHoleFadeTime",b.BulletHoleFadeTime)
+        rawset(t,"BulletHoleTexture",b.BulletHoleTexture)
+        local inner = rawget(t, 1)
+        if typeof(inner) == "table" then rawset(inner, 1, b.inner1) end
+    end
+
+    local function sprayApply(t)
+        if typeof(t) ~= "table" or not rawget(t,"BulletHoleEnabled") then return end
+        sprayBackup(t)
+        rawset(t,"BulletHoleEnabled",true); rawset(t,"BulletHoleSize",sprayState.size)
+        rawset(t,"BulletHoleVisibleTime",sprayState.visibleTime); rawset(t,"BulletHoleFadeTime",sprayState.fadeTime)
+        rawset(t,"BulletHoleTexture",SPRAY_TEXTURE)
+        local inner = rawget(t, 1)
+        if typeof(inner) == "table" then rawset(inner, 1, SPRAY_TEXTURE) end
+    end
+
+    local function sprayApplyAll()
+        for _, v in getgc(true) do
+            if typeof(v) == "table" then
+                pcall(function()
+                    sprayApply(v)
+                    for _, k in {7, 8} do sprayApply(rawget(v, k)) end
+                end)
+            end
+        end
+    end
+
+    local function sprayRestoreAll()
+        for t in pairs(sprayState.backups) do pcall(function() sprayRestore(t) end) end
+    end
+
+    BulletModSection:Toggle({
+        Title = "SprayPaint Bullets", Value = false,
+        Callback = function(enabled)
+            sprayState.enabled = enabled
+            if enabled then sprayApplyAll(); WindUI:Notify({ Title = "SprayPaint On",  Icon = "paintbrush", Duration = 3 })
+            else            sprayRestoreAll(); WindUI:Notify({ Title = "SprayPaint Off", Icon = "paintbrush", Duration = 3 }) end
+        end
+    })
+
+    BulletModSection:Slider({
+        Title = "Spray Size", Min = 1, Max = 150, Default = 12,
+        Callback = function(val) sprayState.size = val; if sprayState.enabled then sprayApplyAll() end end
+    })
+
+    BulletModSection:Slider({
+        Title = "Spray Timing", Min = 0, Max = 200, Default = 100,
+        Callback = function(val)
+            sprayState.visibleTime = val; sprayState.fadeTime = 12
+            if sprayState.enabled then sprayApplyAll() end
+        end
+    })
+end
+
+-- ─── ME TAB — PLAYER MODS ────────────────────────────────────────────────────
+
+do
+    local LP        = S.LocalPlayer
+    local RS        = Services.ReplicatedStorage
+    local RunSvc    = Services.RunService
+    local UIS       = Services.UserInputService
+    local PPS       = game:GetService("ProximityPromptService")
+    local StarterGui= game:GetService("StarterGui")
+    local Lighting  = game:GetService("Lighting")
+
+    local PM = {
+        InfiniteSleep         = false,
+        InfiniteStamina       = false,
+        InfiniteHunger        = false,
+        InstantInteract       = false,
+        FastRespawn           = false,
+        RespawnWhereYouDied   = false,
+        AutoPickupBags        = false,
+        AutoPickupCash        = false,
+        BypassLockedCars      = false,
+        AntiLoseItems         = false,
+        DisableCameraBobbing  = false,
+        DisableBloodEffects   = false,
+        NoRentPay             = false,
+        PulseNameTag          = false,
+        NoJumpCooldown        = false,
+        NoFallDamage          = false,
+    }
+
+    -- ── TOGGLES ────────────────────────────────────────────────────────────────
+
+    local function pmToggle(title, key)
+        Tabs.MeTab:Toggle({ Title = title, Value = false, Callback = function(v) PM[key] = v end })
+    end
+
+    pmToggle("Infinite Sleep",        "InfiniteSleep")
+    pmToggle("Infinite Stamina",      "InfiniteStamina")
+    pmToggle("Infinite Hunger",       "InfiniteHunger")
+    pmToggle("Instant Interact",      "InstantInteract")
+    pmToggle("Faster Respawn",        "FastRespawn")
+    pmToggle("Respawn Where U Died",  "RespawnWhereYouDied")
+    pmToggle("Auto Loot Bags",        "AutoPickupBags")
+    pmToggle("Auto Pick Cash",        "AutoPickupCash")
+    pmToggle("Bypass Locked Cars",    "BypassLockedCars")
+    pmToggle("Keep Items On Death",   "AntiLoseItems")
+    pmToggle("Anti Camera Shake",     "DisableCameraBobbing")
+    pmToggle("Anti Blood Effects",    "DisableBloodEffects")
+    pmToggle("Anti Rent Pay",         "NoRentPay")
+    pmToggle("Anti Jump Cooldown",    "NoJumpCooldown")
+    pmToggle("Anti Fall Damage",      "NoFallDamage")
+    pmToggle("Pulse Name Tag",        "PulseNameTag")
+
+    -- ── RENDERSTEP LOOP ────────────────────────────────────────────────────────
+
+    RunSvc.RenderStepped:Connect(function()
+        -- Infinite Stamina
+        local runGui = LP.PlayerGui:FindFirstChild("Run")
+        if runGui then
+            local s = runGui:FindFirstChild("StaminaBarScript", true)
+            if s then s.Disabled = PM.InfiniteStamina end
+        end
+
+        -- Infinite Hunger
+        local hungerGui = LP.PlayerGui:FindFirstChild("Hunger")
+        if hungerGui then
+            local s = hungerGui:FindFirstChild("HungerBarScript", true)
+            if s then s.Disabled = PM.InfiniteHunger end
+        end
+
+        -- Infinite Sleep
+        local sleepGui = LP.PlayerGui:FindFirstChild("SleepGui")
+        if sleepGui then
+            local s = sleepGui:FindFirstChild("sleepScript", true)
+            if s then s.Disabled = PM.InfiniteSleep end
+        end
+
+        -- Anti Camera Shake
+        if LP.Character then
+            local bob = LP.Character:FindFirstChild("CameraBobbing")
+            if bob then bob.Disabled = PM.DisableCameraBobbing end
+        end
+
+        -- Anti Fall Damage
+        if LP.Character then
+            local fall = LP.Character:FindFirstChild("FallDamageRagdoll")
+            if fall then fall.Disabled = PM.NoFallDamage end
+        end
+
+        -- Anti Blood Effects
+        local bloodGui = LP.PlayerGui:FindFirstChild("BloodGui")
+        if bloodGui then bloodGui.Enabled = not PM.DisableBloodEffects end
+
+        -- Anti Rent Pay
+        local rentGui = LP.PlayerGui:FindFirstChild("RentGui")
+        if rentGui then
+            local s = rentGui:FindFirstChild("LocalScript")
+            if s then s.Disabled = PM.NoRentPay end
+        end
+
+        -- Auto Loot Bags
+        if PM.AutoPickupBags and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") and workspace:FindFirstChild("Storage") then
+            local hrp = LP.Character.HumanoidRootPart
+            for _, v in pairs(workspace.Storage:GetChildren()) do
+                if v:IsA("MeshPart") then
+                    local owner  = v:FindFirstChild("PlayerName")
+                    local prompt = v:FindFirstChild("stealprompt")
+                    if prompt and (not owner or owner.Value ~= LP.Name) and (v.Position - hrp.Position).Magnitude < 5 then
+                        fireproximityprompt(prompt)
+                    end
+                end
+            end
+        end
+
+        -- Auto Pick Cash
+        if PM.AutoPickupCash and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") and workspace:FindFirstChild("Dollas") then
+            local hrp = LP.Character.HumanoidRootPart
+            for _, v in pairs(workspace.Dollas:GetChildren()) do
+                if v:IsA("Part") then
+                    local prompt = v:FindFirstChild("ProximityPrompt")
+                    if prompt and (v.Position - hrp.Position).Magnitude < 5 then
+                        fireproximityprompt(prompt)
+                    end
+                end
+            end
+        end
+    end)
+
+    -- ── FAST RESPAWN ───────────────────────────────────────────────────────────
+
+    local FIRE_INTERVAL = 0.15
+    local lastFire      = 0
+    local humanoid
+
+    local function hookCharacterFR(char)
+        humanoid = char:WaitForChild("Humanoid")
+    end
+
+    if LP.Character then hookCharacterFR(LP.Character) end
+    LP.CharacterAdded:Connect(hookCharacterFR)
+
+    RunSvc.PreRender:Connect(function()
+        if not PM.FastRespawn or not humanoid then return end
+        if humanoid:GetState() ~= Enum.HumanoidStateType.Dead then lastFire = 0; return end
+        local now = os.clock()
+        if now - lastFire < FIRE_INTERVAL then return end
+        lastFire = now
+        FireServer(RS.LoadCharacter)
+        game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, true)
+    end)
+
+    -- ── KEEP ITEMS ON DEATH ────────────────────────────────────────────────────
+
+    local ExemptItems = {"Phone","Fist","Shiesty","Bandage","Lemonade","Car keys","Cuban","GunPermit"}
+
+    local function MarketHasItem(name)
+        local market = RS:FindFirstChild("MarketItems")
+        if not market then return false end
+        for _, item in ipairs(market:GetChildren()) do
+            if item.Name == name and item:FindFirstChild("owner") and item.owner.Value == LP.Name then return true end
+        end
+        return false
+    end
+
+    local function BackpackHasItem(name)
+        for _, t in ipairs(LP.Backpack:GetChildren()) do
+            if t:IsA("Tool") and t.Name == name then return true end
+        end
+        return false
+    end
+
+    local function ForcePutToMarket(name)
+        local endTime = os.clock() + 12
+        while os.clock() < endTime do
+            if MarketHasItem(name) then return true end
+            pcall(function() RS.ListWeaponRemote:FireServer(name, 999999) end)
+            task.wait(0.15)
+        end
+        return false
+    end
+
+    local function ForceRetrieveFromMarket(name)
+        local market = RS:WaitForChild("MarketItems", 10)
+        if not market then return false end
+        local endTime = os.clock() + 12
+        while os.clock() < endTime do
+            for _, item in ipairs(market:GetChildren()) do
+                if item.Name == name and item:FindFirstChild("owner") and item.owner.Value == LP.Name and item:GetAttribute("SpecialId") then
+                    local special = item:GetAttribute("SpecialId")
+                    pcall(function() RS.BuyItemRemote:FireServer(name, "Remove", special) end)
+                    task.wait(0.2)
+                    pcall(function() RS.BackpackRemote:InvokeServer("Grab", name) end)
+                    task.wait(0.2)
+                    if BackpackHasItem(name) then return true end
+                end
+            end
+            task.wait(0.2)
+        end
+        return false
+    end
+
+    local function SaveOnDeath(char)
+        local hum = char:WaitForChild("Humanoid")
+        hum.Died:Connect(function()
+            if not PM.AntiLoseItems then return end
+            task.wait(0.25)
+            for _, tool in ipairs(LP.Backpack:GetChildren()) do
+                if tool:IsA("Tool") and not table.find(ExemptItems, tool.Name) then
+                    ForcePutToMarket(tool.Name)
+                end
+            end
+        end)
+    end
+
+    local function RetrieveAfterSpawn()
+        task.delay(2.2, function()
+            if not PM.AntiLoseItems then return end
+            local market = RS:FindFirstChild("MarketItems")
+            if not market then return end
+            for _, item in ipairs(market:GetChildren()) do
+                if item:FindFirstChild("owner") and item.owner.Value == LP.Name then
+                    ForceRetrieveFromMarket(item.Name)
+                end
+            end
+        end)
+    end
+
+    local function SetupAntiLose(char) SaveOnDeath(char); RetrieveAfterSpawn() end
+    if LP.Character then SetupAntiLose(LP.Character) end
+    LP.CharacterAdded:Connect(SetupAntiLose)
+
+    -- ── RESPAWN WHERE YOU DIED ─────────────────────────────────────────────────
+
+    local DeathFrame = nil
+
+    local function SetupRespawn(char)
+        local hum = char:WaitForChild("Humanoid")
+        local hrp = char:WaitForChild("HumanoidRootPart")
+
+        hum.Died:Connect(function() DeathFrame = hrp.CFrame end)
+
+        if PM.RespawnWhereYouDied and typeof(DeathFrame) == "CFrame" then
+            hrp.CFrame = DeathFrame
+        end
+    end
+
+    if LP.Character then SetupRespawn(LP.Character) end
+    LP.CharacterAdded:Connect(SetupRespawn)
+
+    -- ── NO JUMP COOLDOWN ───────────────────────────────────────────────────────
+
+    UIS.JumpRequest:Connect(function()
+        if not PM.NoJumpCooldown then return end
+        local char = LP.Character
+        if not char then return end
+        local hum = char:FindFirstChildWhichIsA("Humanoid")
+        if not hum then return end
+        if hum.FloorMaterial == Enum.Material.Air then return end
+        if hum.Jump or hum:GetState() == Enum.HumanoidStateType.Jumping then return end
+        hum:ChangeState(Enum.HumanoidStateType.Jumping)
+    end)
+
+    -- ── INSTANT INTERACT / BYPASS LOCKED CARS ─────────────────────────────────
+
+    PPS.PromptButtonHoldBegan:Connect(function(Prompt, Player)
+        if Player ~= LP then return end
+
+        if PM.InstantInteract then
+            if fireproximityprompt then
+                fireproximityprompt(Prompt)
+            else
+                local old = Prompt.HoldDuration
+                Prompt.HoldDuration = 0
+                task.wait()
+                Prompt.HoldDuration = old
+            end
+        end
+
+        if PM.BypassLockedCars then
+            local char = LP.Character
+            local hum  = char and char:FindFirstChild("Humanoid")
+            if hum then
+                local Seat = Prompt.Parent:FindFirstChildWhichIsA("VehicleSeat")
+                    or Prompt.Parent:FindFirstAncestorWhichIsA("VehicleSeat")
+                    or (Prompt.Parent.Parent and Prompt.Parent.Parent:FindFirstChildWhichIsA("VehicleSeat"))
+                if Seat then Seat:Sit(hum) end
+            end
+        end
+    end)
+
+    -- ── PULSE NAME TAG ─────────────────────────────────────────────────────────
+
+    local HEIGHT_OFFSET = 1.3
+    local BASE_COLOR    = Color3.fromRGB(255, 0, 0)
+    local DARK_COLOR    = Color3.fromRGB(139, 0, 0)
+    local tagT          = 0
+
+    local function createNameTag(character)
+        local head = character:WaitForChild("Head")
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name          = "NazuroNameTag"
+        billboard.Size          = UDim2.new(0, 100, 0, 20)
+        billboard.Adornee       = head
+        billboard.StudsOffset   = Vector3.new(0, HEIGHT_OFFSET, 0)
+        billboard.AlwaysOnTop   = true
+        billboard.Parent        = head
+
+        local outline = Instance.new("TextLabel")
+        outline.Size                 = UDim2.fromScale(1, 1)
+        outline.BackgroundTransparency = 1
+        outline.TextScaled           = true
+        outline.Font                 = Enum.Font.GothamBold
+        outline.Text                 = "nazuro"
+        outline.TextColor3           = Color3.new(0, 0, 0)
+        outline.TextStrokeTransparency = 0
+        outline.TextStrokeColor3     = Color3.new(0, 0, 0)
+        outline.Parent               = billboard
+
+        local label = outline:Clone()
+        label.TextColor3             = BASE_COLOR
+        label.TextStrokeTransparency = 1
+        label.Parent                 = billboard
+
+        return label, outline
+    end
+
+    local NazChar = LP.Character or LP.CharacterAdded:Wait()
+    local NazText, NazOutline = createNameTag(NazChar)
+
+    LP.CharacterAdded:Connect(function(char)
+        NazChar = char
+        NazText, NazOutline = createNameTag(char)
+    end)
+
+    RunSvc.RenderStepped:Connect(function(dt)
+        if not PM.PulseNameTag then
+            if NazText    then NazText.Visible    = false end
+            if NazOutline then NazOutline.Visible = false end
+            return
+        end
+        if NazText and NazOutline then
+            tagT += dt * 1.2
+            local pulse = (math.sin(tagT) + 1) / 2
+            NazText.TextColor3 = BASE_COLOR:Lerp(DARK_COLOR, pulse * 0.25)
+            NazText.Visible    = true
+            NazOutline.Visible = true
+        end
+    end)
+end
+
+-- ============================
+--        MONEY TAB / FARMS
+-- ============================
+
+do
+    local LP     = S.LocalPlayer
+    local RS     = S.ReplicatedStorage
+    local WS     = S.Workspace
+    local RunSvc = S.RunService
+
+    local Farms = {
+        FarmStudio          = false,
+        FarmConstructionJob = false,
+        FarmBank            = false,
+        FarmHouses          = false,
+        FarmTrash           = false,
+        AutoSellTrash       = false,
+        AFKCheck            = false,
+    }
+
+    -- ── UI TOGGLES ────────────────────────────────────────────────────────────
+
+    Tabs.BankTab:Toggle({
+        Title    = "AFK Check",
+        Icon     = "shield",
+        Value    = false,
+        Callback = function(v) Farms.AFKCheck = v end,
+    })
+
+    Tabs.BankTab:Divider()
+
+    Tabs.BankTab:Toggle({
+        Title    = "AutoFarm | Studio",
+        Icon     = "music",
+        Value    = false,
+        Callback = function(v) Farms.FarmStudio = v end,
+    })
+
+    Tabs.BankTab:Toggle({
+        Title    = "AutoFarm | Construction",
+        Icon     = "hammer",
+        Value    = false,
+        Callback = function(v)
+            Farms.FarmConstructionJob = v
+            if v then
+                local char = LP.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    getgenv().ConstructionOldCFrame = char.HumanoidRootPart.CFrame
+                end
+            else
+                task.spawn(function()
+                    local construction = WS:FindFirstChild("ConstructionStuff")
+                    if not construction then return end
+                    local sp     = construction:FindFirstChild("Start Job")
+                    local prompt = sp and sp:FindFirstChild("Prompt")
+                    if prompt and prompt.Enabled then
+                        local part = prompt.Parent
+                        if part and part:IsA("BasePart") then
+                            pcall(BypassTeleport, part.CFrame)
+                            task.wait(0.1)
+                            fireproximityprompt(prompt)
+                        end
+                    end
+                    local char = LP.Character
+                    if char and char:FindFirstChild("Humanoid") then
+                        char.Humanoid:UnequipTools()
+                    end
+                end)
+            end
+        end,
+    })
+
+    Tabs.BankTab:Toggle({
+        Title    = "AutoFarm | Bank",
+        Icon     = "landmark",
+        Value    = false,
+        Callback = function(v) Farms.FarmBank = v end,
+    })
+
+    Tabs.BankTab:Toggle({
+        Title    = "AutoFarm | Houses",
+        Icon     = "house",
+        Value    = false,
+        Callback = function(v) Farms.FarmHouses = v end,
+    })
+
+    Tabs.BankTab:Toggle({
+        Title    = "AutoFarm | Trash",
+        Icon     = "trash",
+        Value    = false,
+        Callback = function(v)
+            Farms.FarmTrash = v
+            getgenv().TrashLoopRunning = v
+        end,
+    })
+
+    Tabs.BankTab:Toggle({
+        Title    = "Auto Sell Trash",
+        Icon     = "coins",
+        Value    = false,
+        Callback = function(v) Farms.AutoSellTrash = v end,
+    })
+
+    -- ── BANKING OPTIONS ───────────────────────────────────────────────────────
+
+    Tabs.BankTab:Divider()
+
+    local Banking = {
+        AutoDrop       = false,
+        AutoDeposit    = false,
+        AutoWithdraw   = false,
+        DropAmount     = 50,
+        DepositAmount  = 50,
+        WithdrawAmount = 50,
+    }
+
+    -- Auto Drop loop
+    task.spawn(function()
+        while true do
+            task.wait(0.5)
+            if not Banking.AutoDrop then continue end
+            pcall(function()
+                S.ReplicatedStorage:WaitForChild("BankProcessRemote")
+                    :InvokeServer("Drop", tostring(Banking.DropAmount))
+                local giveMoney = S.ReplicatedStorage:FindFirstChild("GiveMoney")
+                if giveMoney then
+                    giveMoney:FireServer("drop", tostring(Banking.DropAmount))
+                end
+            end)
+        end
+    end)
+
+    -- Auto Deposit loop
+    task.spawn(function()
+        while task.wait(0.25) do
+            if not Banking.AutoDeposit then continue end
+            pcall(function()
+                S.ReplicatedStorage:WaitForChild("BankAction"):FireServer("depo", tostring(Banking.DepositAmount))
+            end)
+        end
+    end)
+
+    -- Auto Withdraw loop
+    task.spawn(function()
+        while task.wait(0.25) do
+            if not Banking.AutoWithdraw then continue end
+            pcall(function()
+                S.ReplicatedStorage:WaitForChild("BankAction"):FireServer("with", tostring(Banking.WithdrawAmount))
+            end)
+        end
+    end)
+
+    Tabs.BankTab:Toggle({
+        Title    = "Auto Drop Money",
+        Icon     = "arrow-down",
+        Desc     = "Drops your money on the ground on a loop.",
+        Value    = false,
+        Callback = function(v) Banking.AutoDrop = v end,
+    })
+
+    Tabs.BankTab:Slider({
+        Title    = "Drop Amount",
+        Icon     = "banknote",
+        Min      = 1,
+        Max      = 10000,
+        Default  = 50,
+        Callback = function(v) Banking.DropAmount = v end,
+    })
+
+    Tabs.BankTab:Toggle({
+        Title    = "Auto Deposit",
+        Icon     = "landmark",
+        Desc     = "Auto-deposits to bank every 0.25s.",
+        Value    = false,
+        Callback = function(v) Banking.AutoDeposit = v end,
+    })
+
+    Tabs.BankTab:Slider({
+        Title    = "Deposit Amount",
+        Icon     = "banknote",
+        Min      = 1,
+        Max      = 30000,
+        Default  = 50,
+        Callback = function(v) Banking.DepositAmount = v end,
+    })
+
+    Tabs.BankTab:Toggle({
+        Title    = "Auto Withdraw",
+        Icon     = "wallet",
+        Desc     = "Auto-withdraws from bank every 0.25s.",
+        Value    = false,
+        Callback = function(v) Banking.AutoWithdraw = v end,
+    })
+
+    Tabs.BankTab:Slider({
+        Title    = "Withdraw Amount",
+        Icon     = "banknote",
+        Min      = 1,
+        Max      = 90000,
+        Default  = 50,
+        Callback = function(v) Banking.WithdrawAmount = v end,
+    })
+
+    -- ── STUDIO FARM LOOP ──────────────────────────────────────────────────────
+
+    task.spawn(function()
+        while true do
+            task.wait()
+            if not Farms.FarmStudio then continue end
+
+            local char = LP.Character
+            local hum  = char and char:FindFirstChild("Humanoid")
+            local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+            if not (char and hum and hrp and hum.Health > 0) then continue end
+
+            local OldCFrame = hrp.CFrame
+
+            local StudioPayFolder = WS:FindFirstChild("StudioPay")
+            if not StudioPayFolder then pcall(BypassTeleport, OldCFrame); continue end
+
+            local MoneyFolder = StudioPayFolder:FindFirstChild("Money")
+            if not MoneyFolder then pcall(BypassTeleport, OldCFrame); continue end
+
+            local function ActivatePrompt(p)
+                if p and p.Enabled then
+                    pcall(BypassTeleport, p.Parent.CFrame)
+                    task.wait(0.1)
+                    fireproximityprompt(p)
+                    task.wait(0.1)
+                end
+            end
+
+            ActivatePrompt(MoneyFolder:FindFirstChild("StudioPay1") and MoneyFolder.StudioPay1:FindFirstChild("Prompt", true))
+            ActivatePrompt(MoneyFolder:FindFirstChild("StudioPay2") and MoneyFolder.StudioPay2:FindFirstChild("Prompt", true))
+            ActivatePrompt(MoneyFolder:FindFirstChild("StudioPay3") and MoneyFolder.StudioPay3:FindFirstChild("Prompt", true))
+
+            pcall(BypassTeleport, OldCFrame)
+
+            if Farms.AFKCheck then
+                task.wait(0.4)
+                pcall(BypassTeleport, OldCFrame)
+                task.wait(0.4)
+            end
+        end
+    end)
+
+    -- ── CONSTRUCTION FARM LOOP ────────────────────────────────────────────────
+
+    task.spawn(function()
+        local Construction = WS:WaitForChild("ConstructionStuff")
+        local CachedWalls  = {}
+        local StartPrompt2, GrabPrompt2
+
+        for _, v in ipairs(Construction:GetChildren()) do
+            if v:IsA("Part") then
+                if v.Name:find("Wall") then
+                    local p = v:FindFirstChild("Prompt")
+                    if p then p.HoldDuration = 0; table.insert(CachedWalls, v) end
+                elseif v.Name == "Start Job" then
+                    StartPrompt2 = v:FindFirstChild("Prompt")
+                    if StartPrompt2 then StartPrompt2.HoldDuration = 0 end
+                elseif v.Name == "Grab Wood" then
+                    GrabPrompt2 = v:FindFirstChild("Prompt")
+                    if GrabPrompt2 then GrabPrompt2.HoldDuration = 0 end
+                end
+            end
+        end
+
+        local function GetFreeWall()
+            for _, wall in ipairs(CachedWalls) do
+                local p = wall:FindFirstChild("Prompt")
+                if p and p.Enabled then return wall, p end
+            end
+        end
+
+        while true do
+            RunSvc.Heartbeat:Wait()
+            if not Farms.FarmConstructionJob then task.wait(0.2); continue end
+
+            local char = LP.Character
+            local hum  = char and char:FindFirstChild("Humanoid")
+            local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+            if not (char and hum and hrp and hum.Health > 0) then continue end
+
+            if not LP:GetAttribute("WorkingJob") then
+                if StartPrompt2 and StartPrompt2.Enabled then
+                    BypassTeleport(StartPrompt2.Parent.CFrame)
+                    task.wait(0.2)
+                    fireproximityprompt(StartPrompt2)
+                    repeat RunSvc.Heartbeat:Wait()
+                    until LP:GetAttribute("WorkingJob") or not Farms.FarmConstructionJob
+                end
+                continue
+            end
+
+            getgenv().SwimMethod = true
+
+            if not char:FindFirstChild("PlyWood") and not LP.Backpack:FindFirstChild("PlyWood") then
+                if GrabPrompt2 and GrabPrompt2.Enabled then
+                    BypassTeleport(GrabPrompt2.Parent.CFrame)
+                    repeat
+                        fireproximityprompt(GrabPrompt2)
+                        RunSvc.Heartbeat:Wait()
+                    until char:FindFirstChild("PlyWood")
+                        or LP.Backpack:FindFirstChild("PlyWood")
+                        or not Farms.FarmConstructionJob
+                end
+                continue
+            end
+
+            local PlyWood = LP.Backpack:FindFirstChild("PlyWood")
+            if PlyWood then hum:EquipTool(PlyWood) end
+
+            local wall, prompt = GetFreeWall()
+            if wall and prompt then
+                BypassTeleport(wall.CFrame)
+                repeat
+                    fireproximityprompt(prompt)
+                    RunSvc.Heartbeat:Wait()
+                until not char:FindFirstChild("PlyWood")
+                    or not prompt.Enabled
+                    or not Farms.FarmConstructionJob
+            end
+        end
+    end)
+
+
+
+    task.spawn(function()
+        while true do
+            task.wait()
+            if not Farms.FarmBank then continue end
+
+            local char = LP.Character
+            local hum  = char and char:FindFirstChild("Humanoid")
+            local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+            if not (char and hum and hrp and hum.Health > 0) then continue end
+
+            local OldCFrame = hrp.CFrame
+            local Robbable  = WS.vault.door.robPrompt.ProximityPrompt.Enabled
+
+            if not Robbable then
+                if Farms.AFKCheck then pcall(BypassTeleport, OldCFrame) end
+                task.wait(0.2)
+                continue
+            end
+
+            if not char:FindFirstChild("DuffelBag") then
+                BypassTeleport(CFrame.new(-415, 339, -547))
+                task.wait(0.2)
+                fireproximityprompt(WS.dufflebagequip:FindFirstChildWhichIsA("ProximityPrompt"))
+            end
+
+            if not LP.Backpack:FindFirstChild("C4") and not char:FindFirstChild("C4") then
+                BypassTeleport(CFrame.new(-414, 337, -565))
+                task.wait(0.2)
+                fireproximityprompt(WS.GUNS.C4.Handle.BuyPrompt)
+            end
+
+            repeat task.wait() until LP.Backpack:FindFirstChild("C4") or char:FindFirstChild("C4")
+
+            hum:EquipTool(LP.Backpack:FindFirstChild("C4"))
+            BypassTeleport(CFrame.new(-214, 374, -1215))
+            task.wait(0.2)
+            fireproximityprompt(WS.vault.door.robPrompt.ProximityPrompt)
+            task.wait(2)
+
+            local Number = char.DuffelBag.display.SurfaceGui.Frame.TextLabel.Text
+            Number = Number:gsub("0/", "")
+
+            for _ = 1, tonumber(Number) do
+                local Cash = WS.BankItems.Cash:FindFirstChild("Cash")
+                if not Cash then
+                    for _, v in WS:GetChildren() do
+                        if v.Name == "Cash" and v:IsA("Model") and v:FindFirstChild("Model") then Cash = v end
+                    end
+                end
+                BypassTeleport(Cash.Model.Cash.CFrame)
+                task.wait(0.4)
+                fireproximityprompt(Cash.Model:FindFirstChildWhichIsA("ProximityPrompt", true))
+                task.wait(0.3)
+            end
+
+            BypassTeleport(WS.sellgold.CFrame)
+            task.wait(0.1)
+            fireclickdetector(WS.sellgold.ClickDetector)
+            pcall(BypassTeleport, OldCFrame)
+        end
+    end)
+
+ 
+
+    task.spawn(function()
+        while true do
+            task.wait()
+            if not Farms.FarmHouses then continue end
+
+            local char = LP.Character
+            local hum  = char and char:FindFirstChild("Humanoid")
+            local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+            if not (char and hum and hrp and hum.Health > 0) then continue end
+
+            local OldCFrame      = hrp.CFrame
+            local HardDoorPrompt = WS.HouseRobb.HardDoor.Door:FindFirstChildWhichIsA("ProximityPrompt", true)
+
+            if not HardDoorPrompt or not HardDoorPrompt.Enabled then
+                if Farms.AFKCheck then pcall(BypassTeleport, OldCFrame) end
+                continue
+            end
+
+            repeat
+                task.wait()
+                BypassTeleport(HardDoorPrompt.Parent.CFrame)
+                task.wait(0.1)
+                fireproximityprompt(HardDoorPrompt)
+            until WS.HouseRobb.HardDoor:FindFirstChild("TakeMoney")
+                and WS.HouseRobb.HardDoor.TakeMoney:FindFirstChild("MoneyGrab")
+                and WS.HouseRobb.HardDoor.TakeMoney.MoneyGrab:FindFirstChildWhichIsA("ProximityPrompt", true).Enabled
+
+            for _, Value in WS.HouseRobb.HardDoor.TakeMoney:GetChildren() do
+                BypassTeleport(Value.CFrame)
+                fireproximityprompt(Value.ProximityPrompt)
+                task.wait()
+            end
+
+            task.wait(0.2)
+            pcall(BypassTeleport, OldCFrame)
+        end
+    end)
+
+    
+
+    getgenv().TrashItems = getgenv().TrashItems or {
+        "Bag","Screwdriver","C FnBody1","C G26Body1","C UziBase1",
+        "C G26Body2","C G22Body2","C G22Body1","C AxeBody1",
+        "Cleaver","C UziStock3","Card","C AxeBody2",
+        "C UziStock2","C FNBody2",
+    }
+
+    task.spawn(function()
+        while true do
+            task.wait()
+            if not Farms.FarmTrash then continue end
+
+            local char = LP.Character
+            local hum  = char and char:FindFirstChild("Humanoid")
+            if not (char and hum and hum.Health > 0 and char:FindFirstChild("HumanoidRootPart")) then continue end
+
+            for _, v in pairs(WS:GetChildren()) do
+                if v.Name == "DumpsterPromt" then
+                    local p = v:FindFirstChild("ProximityPrompt")
+                    if p and p.Enabled then
+                        p.HoldDuration = 0
+                        BypassTeleport(v.CFrame + Vector3.new(0, 3, 0))
+                        task.wait(0.3)
+                        fireproximityprompt(p)
+                        task.wait(0.3)
+                        p.HoldDuration = 1
+                    end
+                end
+            end
+
+            if Farms.AutoSellTrash then
+                local gui = LP:FindFirstChild("PlayerGui")
+                if gui and gui:FindFirstChild("Bronx PAWNING") then
+                    local list = gui["Bronx PAWNING"].Frame.Holder.List
+                    for _, frame in ipairs(list:GetChildren()) do
+                        if not Farms.FarmTrash then break end
+                        if frame:IsA("Frame") and frame:FindFirstChild("Item") then
+                            local itemName = frame.Item.Text
+                            if table.find(getgenv().TrashItems, itemName) then
+                                while Farms.FarmTrash and LP.Backpack:FindFirstChild(itemName) do
+                                    RS.PawnRemote:FireServer(itemName)
+                                    task.wait(0.3)
+                                end
+                            end
+                        end
+                    end
+                end
+                for _, tool in pairs(LP.Backpack:GetChildren()) do
+                    if tool:IsA("Tool") then
+                        RS:WaitForChild("PawnRemote"):FireServer(tool.Name)
+                        task.wait()
+                    end
+                end
+                task.wait(1)
+            end
+        end
+    end)
+end
+-- ============================
+--          AIM TAB
+-- ============================
+
+do
+    local LP     = S.LocalPlayer
+    local RunSvc = S.RunService
+    local Camera = S.Workspace.CurrentCamera
+    local Mouse  = LP:GetMouse()
+    local RS     = S.ReplicatedStorage
+
+    local aimMultiSection = Tabs.Aim:MultiSection({
+        Title     = "Hitbox & Aimbot",
+        Desc      = "enjoy these features!",
+        Icon      = "crosshair",
+        Opened    = true,
+        Box       = true,
+        BoxBorder = true,
+    })
+
+    local HitboxTab = aimMultiSection:Tab({ Title = "Hitbox",       Icon = "box",       Selected = true  })
+    local SilentTab = aimMultiSection:Tab({ Title = "Silent / Gun", Icon = "crosshair", Selected = false })
+
+
+    --       HITBOX EXPANDER
+ 
+
+    getgenv().HitboxEnabled      = false
+    getgenv().HitboxSize         = 10
+    getgenv().HitboxPart         = "Head"
+    getgenv().HitboxTransparency = 0.3
+
+    local heartbeatConnection = nil
+
+    local function ApplyHitbox(player)
+        if not player.Character then return end
+        local part = player.Character:FindFirstChild(getgenv().HitboxPart)
+        if not part or not part:IsA("BasePart") then return end
+        if part:FindFirstChild("HitboxExpanded") then return end
+
+        local origSize        = Instance.new("Vector3Value")
+        origSize.Name         = "OriginalSize"
+        origSize.Value        = part.Size
+        origSize.Parent       = part
+
+        local origTrans       = Instance.new("NumberValue")
+        origTrans.Name        = "OriginalTransparency"
+        origTrans.Value       = part.Transparency
+        origTrans.Parent      = part
+
+        part.Size         = Vector3.new(getgenv().HitboxSize, getgenv().HitboxSize, getgenv().HitboxSize)
+        part.Transparency = getgenv().HitboxTransparency
+        part.CanCollide   = false
+        part.Massless     = true
+
+        local marker      = Instance.new("BoolValue")
+        marker.Name       = "HitboxExpanded"
+        marker.Value      = true
+        marker.Parent     = part
+    end
+
+    local function RevertHitbox(player)
+        if not player.Character then return end
+        local part = player.Character:FindFirstChild(getgenv().HitboxPart)
+        if not part or not part:IsA("BasePart") then return end
+        local marker = part:FindFirstChild("HitboxExpanded")
+        if not marker then return end
+        local origSize  = part:FindFirstChild("OriginalSize")
+        local origTrans = part:FindFirstChild("OriginalTransparency")
+        if origSize  then part.Size         = origSize.Value;  origSize:Destroy()  end
+        if origTrans then part.Transparency = origTrans.Value; origTrans:Destroy() end
+        part.Massless = false
+        marker:Destroy()
+    end
+
+    local function UpdateAllHitboxes()
+        for _, player in S.Players:GetPlayers() do
+            if player ~= LP then
+                if getgenv().HitboxEnabled then ApplyHitbox(player)
+                else                             RevertHitbox(player) end
+            end
+        end
+    end
+
+    local function StartHitboxLoop()
+        if heartbeatConnection then heartbeatConnection:Disconnect() end
+        heartbeatConnection = RunSvc.Heartbeat:Connect(function()
+            if not getgenv().HitboxEnabled then return end
+            UpdateAllHitboxes()
+        end)
+    end
+
+    local function StopHitboxLoop()
+        if heartbeatConnection then heartbeatConnection:Disconnect(); heartbeatConnection = nil end
+        UpdateAllHitboxes()
+    end
+
+    S.Players.PlayerAdded:Connect(function(plr)
+        plr.CharacterAdded:Connect(function()
+            if getgenv().HitboxEnabled then
+                task.delay(0.3, function() ApplyHitbox(plr) end)
+            end
+        end)
+    end)
+
+    task.spawn(function()
+        task.wait(1.2)
+        if getgenv().HitboxEnabled then UpdateAllHitboxes() end
+    end)
+
+    -- Hitbox UI
+
+    HitboxTab:Toggle({
+        Title    = "Enable Hitbox Expander",
+        Icon     = "box",
+        Value    = false,
+        Callback = function(enabled)
+            getgenv().HitboxEnabled = enabled
+            if enabled then StartHitboxLoop(); UpdateAllHitboxes()
+            else             StopHitboxLoop() end
+        end,
+    })
+
+    HitboxTab:Slider({
+        Title    = "Hitbox Size",
+        Icon     = "ruler",
+        Min      = 5,
+        Max      = 50,
+        Default  = 10,
+        Suffix   = " studs",
+        Callback = function(value)
+            getgenv().HitboxSize = value
+            if getgenv().HitboxEnabled then StopHitboxLoop(); StartHitboxLoop() end
+        end,
+    })
+
+    HitboxTab:Dropdown({
+        Title    = "Target Part",
+        Icon     = "person-standing",
+        Values   = { "Head", "UpperTorso", "LowerTorso", "HumanoidRootPart", "LeftUpperLeg", "RightUpperLeg" },
+        Value    = "Head",
+        Callback = function(value)
+            getgenv().HitboxPart = value
+            if getgenv().HitboxEnabled then StopHitboxLoop(); StartHitboxLoop() end
+        end,
+    })
+
+    -- ============================
+    --    SILENT AIM + AIMBOT
+    -- ============================
+
+    getgenv().SilentAimEnabled    = false
+    getgenv().SilentAimHitPart    = "Head"
+    getgenv().SilentAimHitChance  = 100
+    getgenv().SilentAimFOVEnabled = true
+    getgenv().SilentAimFOVRadius  = 150
+    getgenv().WallbangEnabled     = false
+
+    local FOVCircle           = Drawing.new("Circle")
+    FOVCircle.Color           = Color3.fromRGB(227, 11, 92)
+    FOVCircle.Thickness       = 1.5
+    FOVCircle.NumSides        = 64
+    FOVCircle.Filled          = false
+    FOVCircle.Transparency    = 1
+    FOVCircle.Visible         = false
+
+    RunSvc.RenderStepped:Connect(function()
+        if getgenv().SilentAimEnabled and getgenv().SilentAimFOVEnabled then
+            FOVCircle.Visible  = true
+            FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+            FOVCircle.Radius   = getgenv().SilentAimFOVRadius
+        else
+            FOVCircle.Visible = false
+        end
+    end)
+
+    local function IsPartVisible(targetPart)
+        if not getgenv().WallbangEnabled then
+            local origin    = Camera.CFrame.Position
+            local direction = (targetPart.Position - origin)
+            local rayParams = RaycastParams.new()
+            rayParams.FilterDescendantsInstances = {LP.Character}
+            rayParams.FilterType                 = Enum.RaycastFilterType.Exclude
+            rayParams.IgnoreWater                = true
+            local result = workspace:Raycast(origin, direction * 2, rayParams)
+            return result and result.Instance:IsDescendantOf(targetPart.Parent)
+        end
+        return true
+    end
+
+    local function GetClosestPlayerToMouse()
+        if not getgenv().SilentAimEnabled then return nil end
+        local closestPlayer = nil
+        local shortestDist  = math.huge
+        local mousePos      = Vector2.new(Mouse.X, Mouse.Y)
+        for _, player in ipairs(S.Players:GetPlayers()) do
+            if player ~= LP
+            and player.Character
+            and player.Character:FindFirstChild("Humanoid")
+            and player.Character.Humanoid.Health > 0 then
+                local part = player.Character:FindFirstChild(getgenv().SilentAimHitPart)
+                if part and IsPartVisible(part) then
+                    local screenPos, onScreen = Camera:WorldToScreenPoint(part.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                        if getgenv().SilentAimFOVEnabled and dist > getgenv().SilentAimFOVRadius then continue end
+                        if dist < shortestDist then
+                            shortestDist  = dist
+                            closestPlayer = player
+                        end
+                    end
+                end
+            end
+        end
+        return closestPlayer
+    end
+
+    local SilentTarget = nil
+    task.spawn(function()
+        while task.wait(0.1) do
+            SilentTarget = GetClosestPlayerToMouse()
+        end
+    end)
+
+    -- kill_gun
+    local kill_gun = function(target, hpart, damage)
+        if not hpart  then hpart  = "Head"   end
+        if not damage then damage = math.huge end
+        local tool   = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+        local tPlr   = S.Players:FindFirstChild(target)
+        if not tool or not tPlr or not tPlr.Character then return end
+        local tChar  = tPlr.Character
+        local tPart  = tChar:FindFirstChild(hpart)
+        if not tPart then return end
+
+        pcall(function() require(tool.Setting).Range = 10000 end)
+
+        RS.VisualizeMuzzle:FireServer(table.unpack({
+            tool.Handle, true,
+            { false, 7, Color3.new(1,1,0), 15, true, 0.02 },
+            tool.GunScript_Local.MuzzleEffect
+        }))
+
+        RS.VisualizeBullet:FireServer(table.unpack({
+            tool, tool.Handle,
+            Vector3.new(-0.17746905982494, 0.088731124997139, 0.98011803627014),
+            tool.Handle.GunFirePoint,
+            { true, {112139677907600,92977228204408,112139677907600,92977228204408}, 1, 1, 10, tool.GunScript_Local.HitEffect, true },
+            { true, {0,0,0,0,0,0}, 1, 1, 1, tool.GunScript_Local.BloodEffect },
+            { true, 0.2, {3696144972}, true, 7, 1 },
+            { false, 8, true, {163064102}, 1, 1.5, 1, false, tool.GunScript_Local.ExplosionEffect },
+            { false, Vector3.new(0.1,0,0), Vector3.new(-0.1,0,0), tool.GunScript_Local.TracerEffect, nil, tool.GunScript_Local.ParticleEffect, 300, 526, 0, Vector3.zero, Vector3.new(0.4,0.4,0.4), Color3.new(0.639,0.635,0.611), 1, Enum.Material.Neon, Enum.PartType.Cylinder, false, 6696543809, 0, Vector3.new(0.007,0.007,0.007) },
+            { true, {269514869,269514887,269514807,269514817}, 0.5, 1, 1.5, 100 },
+            { false, 3, Color3.new(1,0.647,0.6), 6, true }
+        }))
+
+        RS.InflictTarget:FireServer(table.unpack({
+            tool, LP,
+            tChar.Humanoid, tPart, damage,
+            { 0, 0, false, false, tool.GunScript_Server.IgniteScript, tool.GunScript_Server.IcifyScript, 100, 100 },
+            { false, 5, 3 },
+            tPart,
+            { false, {1930359546}, 1, 1.5, 1 },
+            tPart.Position,
+            Vector3.new(0.074456036090851, -0.099775791168213, -0.99222022294998),
+            true
+        }))
+    end
+
+    getgenv().kill_gun = kill_gun
+
+    -- Silent Aim UI
+
+    SilentTab:Toggle({
+        Title    = "Enable Silent Aim",
+        Icon     = "crosshair",
+        Value    = false,
+        Callback = function(v)
+            getgenv().SilentAimEnabled = v
+            getgenv().WallbangEnabled  = v
+        end,
+    })
+
+    SilentTab:Toggle({
+        Title    = "FOV Circle",
+        Icon     = "circle",
+        Value    = false,
+        Callback = function(v) getgenv().SilentAimFOVEnabled = v end,
+    })
+
+    SilentTab:Toggle({
+        Title    = "Wallbang",
+        Icon     = "shield-off",
+        Value    = false,
+        Callback = function(v) getgenv().WallbangEnabled = v end,
+    })
+
+    SilentTab:Slider({
+        Title    = "FOV Radius",
+        Icon     = "ruler",
+        Min      = 50,
+        Max      = 500,
+        Default  = 150,
+        Suffix   = "px",
+        Callback = function(v) getgenv().SilentAimFOVRadius = v end,
+    })
+
+    SilentTab:Dropdown({
+        Title    = "Hit Part",
+        Icon     = "person-standing",
+        Values   = { "Head", "UpperTorso", "LowerTorso" },
+        Value    = "Head",
+        Callback = function(v) getgenv().SilentAimHitPart = v end,
+    })
+
+    SilentTab:Slider({
+        Title    = "Hit Chance",
+        Icon     = "percent",
+        Min      = 0,
+        Max      = 100,
+        Default  = 100,
+        Suffix   = "%",
+        Callback = function(v) getgenv().SilentAimHitChance = v end,
+    })
+
+    SilentTab:Divider()
+
+    -- Aimbot
+
+    local aimbotEnabled = false
+    local aimbotPart    = "Head"
+    local aimbotDelay   = 0.05
+
+    SilentTab:Toggle({
+        Title    = "Enable Aimbot",
+        Icon     = "target",
+        Desc     = "Auto-fires at closest player in FOV. Hold a gun.",
+        Value    = false,
+        Callback = function(v)
+            aimbotEnabled = v
+            WindUI:Notify({ Title = v and "Aimbot On" or "Aimbot Off", Icon = "target", Duration = 3 })
+        end,
+    })
+
+    SilentTab:Dropdown({
+        Title    = "Aimbot Hit Part",
+        Icon     = "person-standing",
+        Values   = { "Head", "UpperTorso", "LowerTorso", "HumanoidRootPart" },
+        Value    = "Head",
+        Callback = function(v) aimbotPart = v end,
+    })
+
+    SilentTab:Slider({
+        Title    = "Fire Delay",
+        Icon     = "timer",
+        Min      = 1,
+        Max      = 30,
+        Default  = 5,
+        Suffix   = "0ms",
+        Callback = function(v) aimbotDelay = v * 0.01 end,
+    })
+
+    task.spawn(function()
+        while true do
+            task.wait(aimbotDelay)
+            if not aimbotEnabled then continue end
+            local char = LP.Character
+            if not char or not char:FindFirstChildOfClass("Tool") then continue end
+            local target = SilentTarget
+            if not target or not target.Character then continue end
+            local hum = target.Character:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 then continue end
+            if math.random(1, 100) <= getgenv().SilentAimHitChance then
+                pcall(kill_gun, target.Name, aimbotPart, math.huge)
+            end
+        end
+    end)
+end
